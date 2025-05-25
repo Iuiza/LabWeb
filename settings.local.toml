@@ -1,0 +1,5 @@
+[database]
+DATABASE = "lab_web"
+HOST = "localhost"
+PORT = 3306
+USERNAME = "root"
