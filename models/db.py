@@ -270,6 +270,33 @@ class Publicacao(BaseModel):
             await session.commit()
 
         return publicacao, just_created
+    
+
+class Administrador(BaseModel):
+    __tablename__ = "administrador"
+
+    id: Mapped[big_intpk]
+    nome: Mapped[varchar]
+    email: Mapped[varchar]
+    senha: Mapped[varchar]
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str):
+        just_created = False
+
+        administrador = await session.scalar(
+            select(Administrador).where(
+                Administrador.nome == nome,
+                Administrador.email == email,
+            )
+        )
+        if not administrador:
+            administrador = Administrador(nome=nome, email=email, senha=senha)
+            just_created = True
+            session.add(administrador)
+            await session.commit()
+
+        return administrador, just_created
 
 
 async def create_all():
