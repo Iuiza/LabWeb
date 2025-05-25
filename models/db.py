@@ -39,6 +39,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from config import settings
+from enums.status import ProjetoStatusEnum
 from models.db_annotations import (
     intpk,
     varchar,
@@ -176,6 +177,80 @@ class Projeto(BaseModel):
             await session.commit()
 
         return projeto, just_created
+    
+
+class Curso(BaseModel):
+    __tablename__ = "curso"
+
+    id: Mapped[big_intpk]
+    nome: Mapped[varchar]
+
+    projetos: Mapped[list["Projeto"]] = relationship(back_populates="curso")
+    departamento: Mapped["Departamento"] = relationship(back_populates="cursos")
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, nome: str):
+        just_created = False
+
+        curso = await session.scalar(
+            select(Curso).where(Curso.nome == nome)
+        )
+        if not curso:
+            curso = Curso(nome=nome)
+            just_created = True
+            session.add(curso)
+            await session.commit()
+
+        return curso, just_created
+    
+
+class Departamento(BaseModel):
+    __tablename__ = "departamento"
+
+    id: Mapped[big_intpk]
+    nome: Mapped[varchar]
+
+    cursos: Mapped[list["Curso"]] = relationship(back_populates="departamento")
+    campus: Mapped["Campus"] = relationship(back_populates="departamentos")
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, nome: str):
+        just_created = False
+
+        departamento = await session.scalar(
+            select(Departamento).where(Departamento.nome == nome)
+        )
+        if not departamento:
+            departamento = Departamento(nome=nome)
+            just_created = True
+            session.add(departamento)
+            await session.commit()
+
+        return departamento, just_created
+    
+
+class Campus(BaseModel):
+    __tablename__ = "campus"
+
+    id: Mapped[big_intpk]
+    nome: Mapped[varchar]
+
+    departamentos: Mapped[list["Departamento"]] = relationship(back_populates="campus")
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, nome: str):
+        just_created = False
+
+        campus = await session.scalar(
+            select(Campus).where(Campus.nome == nome)
+        )
+        if not campus:
+            campus = Campus(nome=nome)
+            just_created = True
+            session.add(campus)
+            await session.commit()
+
+        return campus, just_created
 
 
 async def create_all():
