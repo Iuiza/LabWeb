@@ -246,7 +246,7 @@ class Publicacao(BaseModel):
 
     id: Mapped[big_intpk]
     titulo: Mapped[varchar]
-    conteudo: Mapped[text | None]
+    conteudo: Mapped[longtext]
     tipo: Mapped[PublicacaoTipoEnum]
     data_publicacao: Mapped[datetime_default_now]
     path_imagem: Mapped[timestamp]
