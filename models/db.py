@@ -1,26 +1,14 @@
 import asyncio
 
-from datetime import datetime, date, timedelta
-from typing import Annotated, Any, Self, ClassVar, cast
+from typing import Annotated, cast
 from urllib.parse import quote
 from sqlalchemy import (
     Engine,
-    Index,
     create_engine,
     ForeignKey,
-    select,
-    DATE,
-    UniqueConstraint,
-    DATETIME,
-    and_,
-    or_,
-    JSON,
-    func,
-    Float,
-    event,
-    update,
+    select
 )
-from sqlalchemy.dialects.mysql import TEXT, VARCHAR
+from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
@@ -33,20 +21,17 @@ from sqlalchemy.orm import (
     Mapped,
     sessionmaker,
     DeclarativeBase,
-    selectinload,
     Session,
 )
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from config import settings
-from enums.status import ProjetoStatusEnum
+from enums.status import ProjetoStatusEnum, PublicacaoTipoEnum
 from models.db_annotations import (
-    intpk,
     varchar,
     text,
     timestamp,
     datetime_default_now,
-    big_int,
     longtext,
     big_intpk,
 )
@@ -123,12 +108,14 @@ class Professor(BaseModel):
     nome: Mapped[varchar]
     email: Mapped[varchar]
     senha: Mapped[varchar]
+    path_imagem: Mapped[varchar]
     cpf: Mapped[str] = mapped_column(VARCHAR(11))
 
     projetos: Mapped[list["Projeto"]] = relationship(back_populates="professores")
+    publicacoes: Mapped[list["Publicacao"]] = relationship(back_populates="professor")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str, cpf: str):
+    async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str, cpf: str, path_imagem: str):
         just_created = False
 
         professor = await session.scalar(
@@ -138,7 +125,7 @@ class Professor(BaseModel):
             )
         )
         if not professor:
-            professor = Professor(nome=nome, email=email, senha=senha, cpf=cpf)
+            professor = Professor(nome=nome, email=email, senha=senha, path_imagem=path_imagem, cpf=cpf)
             just_created = True
             session.add(professor)
             await session.commit()
@@ -152,17 +139,18 @@ class Projeto(BaseModel):
     id: Mapped[big_intpk]
     titulo: Mapped[varchar]
     descricao: Mapped[text | None]
-    path_imagem: Mapped[varchar | None]
+    path_imagem: Mapped[varchar]
     data_inicio: Mapped[timestamp]
     data_fim: Mapped[timestamp | None]
     status: Mapped[ProjetoStatusEnum] = mapped_column(default=ProjetoStatusEnum.ATIVO)
     publico: Mapped[varchar]
 
     professores: Mapped[list["Professor"]] = relationship(back_populates="projetos")
+    publicacoes: Mapped[list["Publicacao"]] = relationship(back_populates="projeto")
     curso: Mapped["Curso"] = relationship(back_populates="projetos")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, titulo: str, data_inicio: timestamp, status: ProjetoStatusEnum, publico: str):
+    async def get_or_create(session: AsyncSession, titulo: str, path_imagem: str, data_inicio: timestamp, status: ProjetoStatusEnum, publico: str):
         just_created = False
 
         projeto = await session.scalar(
@@ -170,7 +158,7 @@ class Projeto(BaseModel):
         )
         if not projeto:
             projeto = Projeto(
-                titulo=titulo, data_inicio=data_inicio, status=status, publico=publico
+                titulo=titulo, path_imagem=path_imagem, data_inicio=data_inicio, status=status, publico=publico
             )
             just_created = True
             session.add(projeto)
@@ -251,6 +239,37 @@ class Campus(BaseModel):
             await session.commit()
 
         return campus, just_created
+    
+
+class Publicacao(BaseModel):
+    __tablename__ = "publicacao"
+
+    id: Mapped[big_intpk]
+    titulo: Mapped[varchar]
+    conteudo: Mapped[text | None]
+    tipo: Mapped[PublicacaoTipoEnum]
+    data_publicacao: Mapped[datetime_default_now]
+    path_imagem: Mapped[timestamp]
+
+    professor: Mapped["Professor"] = relationship(back_populates="publicacoes")
+    projeto: Mapped["Projeto"] = relationship(back_populates="publicacoes")
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, titulo: str, conteudo: str, tipo: PublicacaoTipoEnum, path_imagem: str):
+        just_created = False
+
+        publicacao = await session.scalar(
+            select(Publicacao).where(Publicacao.titulo == titulo)
+        )
+        if not publicacao:
+            publicacao = Publicacao(
+                titulo=titulo, conteudo=conteudo, tipo=tipo, path_imagem=path_imagem
+            )
+            just_created = True
+            session.add(publicacao)
+            await session.commit()
+
+        return publicacao, just_created
 
 
 async def create_all():
