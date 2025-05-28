@@ -26,7 +26,8 @@ from sqlalchemy.orm import (
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from config import settings
-from enums.status import ProjetoStatusEnum, PublicacaoTipoEnum
+from enums.status import ProjetoStatusEnum
+from enums.tipo import PublicacaoTipoEnum
 from models.db_annotations import (
     varchar,
     text,
