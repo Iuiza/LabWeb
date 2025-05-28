@@ -5,7 +5,7 @@ from .routers import auth, admin, professores, projetos, postagens
 
 app = FastAPI(
     title="Extensão UNEB em Foco API",
-    description="API para gerenciar projetos de extensão, notícias e eventos da UNEB.", # <--- CORRIGIDO
+    description="API para gerenciar projetos de extensão, notícias e eventos da UNEB.",
     version="0.1.0"
 )
 

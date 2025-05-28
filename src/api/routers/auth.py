@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import schemas
 from ..dependencies import get_db_session
 # from ..core.security import create_access_token # Sua implementação
+from models import Administrador # Importar o modelo de Administrador
 
 router = APIRouter()
 
@@ -18,7 +19,9 @@ async def login_for_access_token(
     Autentica um usuário (professor ou administrador) e retorna um token de acesso.
     O campo 'username' do formulário é o email.
     """
-    user = await crud.authenticate_user(db, email=form_data.username, password=form_data.password)
+    
+    user = session.execute(select(Administrador).where(email=form_data.username, password=form_data.password)).scalar_one()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
