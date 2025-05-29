@@ -9,7 +9,7 @@ from .. import schemas
 from ..dependencies import get_db_session, get_current_active_admin
 # from ..core.utils import save_upload_file # Função utilitária para salvar arquivos
 
-from models import Professor, Campus, Departamento, Curso
+from models.db import Professor, Campus, Departamento, Curso
 
 router = APIRouter()
 
