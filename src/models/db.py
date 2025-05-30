@@ -113,7 +113,7 @@ class Professor(BaseModel):
     path_imagem: Mapped[varchar]
     cpf: Mapped[str] = mapped_column(VARCHAR(11))
 
-    projetos: Mapped[list["Projeto"]] = relationship(back_populates="professores")
+    link_projetos: Mapped[list["ProjetoProfessor"]] = relationship(back_populates="professor")
     publicacoes: Mapped[list["Publicacao"]] = relationship(back_populates="professor")
 
     @staticmethod
@@ -146,8 +146,9 @@ class Projeto(BaseModel):
     data_fim: Mapped[timestamp | None]
     status: Mapped[ProjetoStatusEnum] = mapped_column(default=ProjetoStatusEnum.ATIVO)
     publico: Mapped[varchar]
+    curso_id: Mapped[int] = mapped_column(ForeignKey("curso.id"))
 
-    professores: Mapped[list["Professor"]] = relationship(back_populates="projetos")
+    link_professores: Mapped[list["ProjetoProfessor"]] = relationship(back_populates="projeto")
     publicacoes: Mapped[list["Publicacao"]] = relationship(back_populates="projeto")
     curso: Mapped["Curso"] = relationship(back_populates="projetos")
 
@@ -199,6 +200,7 @@ class Departamento(BaseModel):
 
     id: Mapped[big_intpk]
     nome: Mapped[varchar]
+    campus_id: Mapped[int] = mapped_column(ForeignKey("campus.id"))
 
     cursos: Mapped[list["Curso"]] = relationship(back_populates="departamento")
     campus: Mapped["Campus"] = relationship(back_populates="departamentos")
@@ -252,6 +254,8 @@ class Publicacao(BaseModel):
     tipo: Mapped[PublicacaoTipoEnum]
     data_publicacao: Mapped[datetime_default_now]
     path_imagem: Mapped[timestamp]
+    professor_id: Mapped[int] = mapped_column(ForeignKey("professor.id"))
+    projeto_id: Mapped[int] = mapped_column(ForeignKey("projeto.id"))
 
     professor: Mapped["Professor"] = relationship(back_populates="publicacoes")
     projeto: Mapped["Projeto"] = relationship(back_populates="publicacoes")
