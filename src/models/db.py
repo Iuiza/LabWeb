@@ -175,6 +175,7 @@ class Curso(BaseModel):
 
     id: Mapped[big_intpk]
     nome: Mapped[varchar]
+    departamento_id: Mapped[int] = mapped_column(ForeignKey("departamento.id"))
 
     projetos: Mapped[list["Projeto"]] = relationship(back_populates="curso")
     departamento: Mapped["Departamento"] = relationship(back_populates="cursos")
