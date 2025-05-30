@@ -20,14 +20,13 @@ async def login_for_access_token(
     Autentica um usuário (professor ou administrador) e retorna um token de acesso.
     O campo 'username' do formulário é o email.
     """
-    
-    result_obj = await (await session.execute(
+
+    user = (await session.execute(
         select(Administrador).where(
             Administrador.email == form_data.username,
             Administrador.senha == form_data.password
         )
-    ))
-    user = result_obj.scalar_one()
+    )).scalar_one_or_none()
 
     if not user:
         raise HTTPException(
