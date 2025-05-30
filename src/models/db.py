@@ -6,7 +6,8 @@ from sqlalchemy import (
     Engine,
     create_engine,
     ForeignKey,
-    select
+    select,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.ext.asyncio import (
@@ -298,6 +299,36 @@ class Administrador(BaseModel):
             await session.commit()
 
         return administrador, just_created
+    
+
+class ProjetoProfessor(BaseModel):
+    __tablename__ = "projeto_professor"
+    __table_args__ = (UniqueConstraint("projeto_id", "professor_id"),)
+
+    id: Mapped[big_intpk]
+    projeto_id: Mapped[int] = mapped_column(ForeignKey("projeto.id"))
+    professor_id: Mapped[int] = mapped_column(ForeignKey("professor.id"))
+
+    projeto: Mapped["Projeto"] = relationship(back_populates="link_professores")
+    professor: Mapped["Professor"] = relationship(back_populates="link_projetos")
+
+    @staticmethod
+    async def get_or_create(session: AsyncSession, projeto_id: str, professor_id: str):
+        just_created = False
+
+        projeto_professor = await session.scalar(
+            select(ProjetoProfessor).where(
+                ProjetoProfessor.projeto_id == projeto_id,
+                ProjetoProfessor.professor_id == professor_id,
+            )
+        )
+        if not projeto_professor:
+            projeto_professor = Administrador(projeto_id=projeto_id, professor_id=professor_id)
+            just_created = True
+            session.add(projeto_professor)
+            await session.commit()
+
+        return projeto_professor, just_created
 
 
 async def create_all():
