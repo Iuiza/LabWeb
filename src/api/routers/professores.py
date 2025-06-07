@@ -25,7 +25,7 @@ async def alterar_senha_do_professor_logado(
     """
     Permite que o professor logado altere sua própria senha. [cite: 15]
     """
-    success = await crud.update_professor_password(
+    success = await update_professor_password(
         db=db,
         professor_id=current_professor.id,
         senha_atual=payload.senha_atual,

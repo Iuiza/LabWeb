@@ -36,7 +36,7 @@ async def get_current_user_base(
     # Simular um tipo de usuário para teste, você precisaria de uma lógica para diferenciar
     # Por exemplo, verificando um campo 'role' no token ou no modelo do usuário.
     # Aqui, vamos simular um professor para rotas que podem ser acessadas por ambos logados.
-    user_simulado = await crud.get_professor_by_id(db, professor_id=1) # Assumindo que existe um prof com ID 1 ou mock
+    user_simulado = await get_professor_by_id(db, professor_id=1) # Assumindo que existe um prof com ID 1 ou mock
     if user_simulado:
         return user_simulado
     # Ou simular um admin

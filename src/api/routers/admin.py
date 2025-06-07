@@ -67,7 +67,6 @@ async def listar_professores_como_admin(
     Lista professores com filtros.
     """
     professores = ( await session.scalars(select(Professor))).all()
-    # professores = await crud.get_professores(session, skip=skip, limit=limit, nome_filter=nome, email_filter=email)
 
     return professores
 

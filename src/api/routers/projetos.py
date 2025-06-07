@@ -7,6 +7,7 @@ from datetime import datetime
 from .. import schemas
 from ..dependencies import get_db_session, get_current_user_base, get_optional_current_user
 from enums.status import ProjetoStatusEnum
+from models.db import Projeto 
 # from ..core.utils import save_upload_file
 
 router = APIRouter()
@@ -19,8 +20,8 @@ router = APIRouter()
     summary="Criar novo projeto de extensão"
 )
 async def criar_novo_projeto(
-    db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base), # Professor ou Admin
+    session: AsyncSession = Depends(get_db_session),
+    # current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base), # Professor ou Admin
     titulo: str = Form(...),
     descricao: Optional[str] = Form(None),
     data_inicio: datetime = Form(...), # FastAPI converterá para datetime
@@ -46,27 +47,24 @@ async def criar_novo_projeto(
         # path_imagem_salva = await save_upload_file(imagem_capa, "projetos")
         path_imagem_salva = f"static/images/projetos/{imagem_capa.filename}" # Placeholder
 
-    projeto_in = schemas.ProjetoCreate(
+    novo_projeto = await Projeto.get_or_create(
+        session=session,
         titulo=titulo,
-        descricao=descricao,
         path_imagem=path_imagem_salva,
-        data_inicio=data_inicio,
-        data_fim=data_fim,
+        data_inicio=data_inicio,    
         status=status,
         publico=publico,
         curso_id=curso_id,
-        professor_ids_responsaveis=professor_ids_responsaveis # Passar os IDs para o CRUD
     )
-    
+
     # O CRUD.create_projeto deve buscar os professores pelos IDs e associá-los.
     # Se o current_user for um professor, ele deve ser um dos responsáveis.
-    if isinstance(current_user, schemas.ProfessorResponse):
-        if current_user.id not in professor_ids_responsaveis:
-            # Ou adiciona automaticamente, ou levanta erro, dependendo da regra.
-            # professor_ids_responsaveis.append(current_user.id)
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Professor criando o projeto deve estar na lista de responsáveis.")
+    # if isinstance(current_user, schemas.ProfessorResponse):
+    #     if current_user.id not in professor_ids_responsaveis:
+    #         # Ou adiciona automaticamente, ou levanta erro, dependendo da regra.
+    #         # professor_ids_responsaveis.append(current_user.id)
+    #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Professor criando o projeto deve estar na lista de responsáveis.")
 
-    novo_projeto = await crud.create_projeto(db=db, projeto_create=projeto_in, criador_id=current_user.id)
     return novo_projeto
 
 
@@ -84,7 +82,7 @@ async def listar_projetos_para_publico(
     Lista os projetos de extensão disponíveis publicamente.
     Pode ser filtrado por curso e status.
     """
-    projetos = await crud.get_projetos_publicos(
+    projetos = await get_projetos_publicos(
         db, skip=skip, limit=limit, curso_id=curso_id, status=status
     )
     return projetos
@@ -98,7 +96,7 @@ async def obter_detalhes_projeto_publico(
     """
     Retorna os detalhes de um projeto específico.
     """
-    db_projeto = await crud.get_projeto_by_id_publico(db, projeto_id=projeto_id)
+    db_projeto = await get_projeto_by_id_publico(db, projeto_id=projeto_id)
     if db_projeto is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado ou não é público.")
     return db_projeto
@@ -123,7 +121,7 @@ async def atualizar_info_projeto(
     Atualiza as informações de um projeto de extensão. [cite: 16]
     Apenas o administrador ou professores responsáveis pelo projeto podem editar. [cite: 39] (RN-2)
     """
-    db_projeto = await crud.get_projeto_by_id(db, projeto_id=projeto_id) # CRUD deve carregar professores
+    db_projeto = await get_projeto_by_id(db, projeto_id=projeto_id) # CRUD deve carregar professores
     if not db_projeto:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
@@ -152,7 +150,7 @@ async def atualizar_info_projeto(
     if not update_data and not imagem_capa: # Se nada foi enviado para atualizar
          raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nenhum dado fornecido para atualização.")
 
-    projeto_atualizado = await crud.update_projeto(db=db, projeto_id=projeto_id, projeto_update_data=update_data)
+    projeto_atualizado = await update_projeto(db=db, projeto_id=projeto_id, projeto_update_data=update_data)
     return projeto_atualizado
 
 
@@ -173,7 +171,7 @@ async def excluir_projeto_extensao(
     # ... verificar permissão ...
 
     # CRUD.delete_projeto deve implementar a lógica de RN-3 [cite: 42]
-    success = await crud.delete_projeto(db=db, projeto_id=projeto_id, user_id_deletando=current_user.id)
+    success = await delete_projeto(db=db, projeto_id=projeto_id, user_id_deletando=current_user.id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado ou falha ao deletar.")
     return {"mensagem": f"Projeto {projeto_id} e suas postagens associadas foram excluídos/realocados."}

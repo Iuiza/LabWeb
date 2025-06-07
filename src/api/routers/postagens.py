@@ -177,7 +177,7 @@ async def excluir_postagem_existente(
     # Lógica de permissão similar à de atualização
     # ...
 
-    success = await crud.delete_publicacao(db=db, publicacao_id=postagem_id, user_id_deletando=current_user.id)
+    success = await delete_publicacao(db=db, publicacao_id=postagem_id, user_id_deletando=current_user.id)
     if not success: # CRUD deve verificar se a postagem existe e se o usuário tem permissão antes de tentar deletar
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Postagem não encontrada ou falha ao deletar.")
     return {"mensagem": f"Postagem {postagem_id} excluída com sucesso."} # RF-4 [cite: 20]

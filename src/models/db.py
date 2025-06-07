@@ -153,7 +153,7 @@ class Projeto(BaseModel):
     curso: Mapped["Curso"] = relationship(back_populates="projetos")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, titulo: str, path_imagem: str, data_inicio: timestamp, status: ProjetoStatusEnum, publico: str):
+    async def get_or_create(session: AsyncSession, titulo: str, path_imagem: str, data_inicio: timestamp, status: ProjetoStatusEnum, publico: str, curso_id: int):
         just_created = False
 
         projeto = await session.scalar(
@@ -161,7 +161,7 @@ class Projeto(BaseModel):
         )
         if not projeto:
             projeto = Projeto(
-                titulo=titulo, path_imagem=path_imagem, data_inicio=data_inicio, status=status, publico=publico
+                titulo=titulo, path_imagem=path_imagem, data_inicio=data_inicio, status=status, publico=publico, curso_id=curso_id
             )
             just_created = True
             session.add(projeto)
@@ -181,14 +181,14 @@ class Curso(BaseModel):
     departamento: Mapped["Departamento"] = relationship(back_populates="cursos")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, nome: str):
+    async def get_or_create(session: AsyncSession, nome: str, departamento_id: int):
         just_created = False
 
         curso = await session.scalar(
             select(Curso).where(Curso.nome == nome)
         )
         if not curso:
-            curso = Curso(nome=nome)
+            curso = Curso(nome=nome, departamento_id=departamento_id)
             just_created = True
             session.add(curso)
             await session.commit()
@@ -207,14 +207,14 @@ class Departamento(BaseModel):
     campus: Mapped["Campus"] = relationship(back_populates="departamentos")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, nome: str):
+    async def get_or_create(session: AsyncSession, nome: str, campus_id: int):
         just_created = False
 
         departamento = await session.scalar(
             select(Departamento).where(Departamento.nome == nome)
         )
         if not departamento:
-            departamento = Departamento(nome=nome)
+            departamento = Departamento(nome=nome, campus_id=campus_id)
             just_created = True
             session.add(departamento)
             await session.commit()
@@ -262,7 +262,7 @@ class Publicacao(BaseModel):
     projeto: Mapped["Projeto"] = relationship(back_populates="publicacoes")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, titulo: str, conteudo: str, tipo: PublicacaoTipoEnum, path_imagem: str):
+    async def get_or_create(session: AsyncSession, titulo: str, conteudo: str, tipo: PublicacaoTipoEnum, path_imagem: str, professor_id: int, projeto_id: int): 
         just_created = False
 
         publicacao = await session.scalar(
@@ -270,7 +270,7 @@ class Publicacao(BaseModel):
         )
         if not publicacao:
             publicacao = Publicacao(
-                titulo=titulo, conteudo=conteudo, tipo=tipo, path_imagem=path_imagem
+                titulo=titulo, conteudo=conteudo, tipo=tipo, path_imagem=path_imagem, professor_id=professor_id, projeto_id=projeto_id
             )
             just_created = True
             session.add(publicacao)
