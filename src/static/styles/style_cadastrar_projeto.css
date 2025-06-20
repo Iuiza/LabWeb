@@ -1291,3 +1291,22 @@
 .dropdown:hover .dropdown-content {
   display: block;
 }
+form input[type="text"],
+form input[type="date"],
+form select,
+form textarea,
+form input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+}
