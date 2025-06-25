@@ -963,12 +963,12 @@
 }
 .dropdown {
   position: relative;
-  display: inline-block;
+  display: flex;
 }
 
 .dropdown-content {
   display: none;
-  position: absolute;
+  position: relative;
   right: 0;
   background-color: white;
   min-width: 160px;
