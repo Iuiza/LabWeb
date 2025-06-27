@@ -51,71 +51,77 @@
       </div>
     </div>
     <div class="text-area">
-      <form action="/submit-projeto" method="POST" enctype="multipart/form-data" class="text-area">
-      <!-- Título -->
-      <div class="t-tulo-do-porjeto">
-        <label for="titulo">Título do Projeto</label>
-        <input type="text" id="titulo" name="titulo" placeholder="Digite o título" required />
-      </div>
+      <form action="/projetos/cadastrar" method="POST" enctype="multipart/form-data" class="text-area">
+        <!-- Título -->
+        <div>
+          <label for="titulo">Título do Projeto</label>
+          <input type="text" id="titulo" name="titulo" required />
+        </div>
 
-      <!-- Data de Início -->
-      <div class="data">
-        <label for="data_inicio">Data de Início do Projeto</label>
-        <input type="date" id="data_inicio" name="data_inicio" required />
-      </div>
+        <!-- Descrição -->
+        <div>
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" name="descricao" rows="4"></textarea>
+        </div>
 
-      <!-- Professor -->
-      <div class="professor">
-        <label for="professor">Professor(es)</label>
-        <input type="text" id="professor" name="professor" placeholder="Nome do professor" required />
-      </div>
+        <!-- Data Início -->
+        <div>
+          <label for="data_inicio">Data de Início</label>
+          <input type="date" id="data_inicio" name="data_inicio" required />
+        </div>
 
-      <!-- Curso -->
-      <div class="curso2">
-        <label for="curso">Curso</label>
-        <select id="curso" name="curso" required>
-          <option value="">Selecione</option>
-          <option value="Sistemas de Informação">Sistemas de Informação</option>
-          <option value="Administração">Administração</option>
-          <option value="Pedagogia">Pedagogia</option>
-        </select>
-      </div>
+        <!-- Data Fim -->
+        <div>
+          <label for="data_fim">Data de Fim</label>
+          <input type="date" id="data_fim" name="data_fim" />
+        </div>
 
-      <!-- Público -->
-      <div class="p-blico">
-        <label for="publico">Público</label>
-        <input type="text" id="publico" name="publico" placeholder="Público alvo" />
-      </div>
+        <!-- Status -->
+        <div>
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="ATIVO">Ativo</option>
+            <option value="INATIVO">Inativo</option>
+            <option value="EM_ANDAMENTO">Em andamento</option>
+          </select>
+        </div>
 
-      <!-- Status -->
-      <div class="status">
-        <label for="status">Status</label>
-        <select id="status" name="status">
-          <option value="">Selecione</option>
-          <option value="ativo">Ativo</option>
-          <option value="inativo">Inativo</option>
-          <option value="em_andamento">Em Andamento</option>
-        </select>
-      </div>
+        <!-- Público -->
+        <div>
+          <label for="publico">Público</label>
+          <input type="text" id="publico" name="publico" placeholder="Sim / Não" required />
+        </div>
 
-      <!-- Descrição -->
-      <div class="descri-o">
-        <label for="descricao">Descrição</label>
-        <textarea id="descricao" name="descricao" rows="5" placeholder="Descreva o projeto..."></textarea>
-      </div>
+        <!-- Curso -->
+        <div>
+          <label for="curso_id">Curso</label>
+          <select id="curso_id" name="curso_id" required>
+            <option value="1">Sistemas de Informação</option>
+            <option value="2">Administração</option>
+            <option value="3">Outro...</option>
+          </select>
+        </div>
 
-      <!-- Ícone -->
-      <div class="imagem">
-        <label for="icone">Ícone do Projeto (JPG, JPEG ou PNG)</label>
-        <input type="file" id="icone" name="icone" accept=".jpg,.jpeg,.png" />
-      </div>
+        <!-- Professores responsáveis (multiseleção) -->
+        <div>
+          <label for="professor_ids_responsaveis">Professores Responsáveis</label>
+          <select id="professor_ids_responsaveis" name="professor_ids_responsaveis" multiple>
+            <option value="1">Caio</option>
+          </select>
+        </div>
 
-      <!-- Botões -->
-      <div class="local-actions">
-        <button type="reset" class="secondary-button">Cancelar</button>
-        <button type="submit" class="primary-button">Cadastrar</button>
-      </div>
-    </form>
+        <!-- Imagem -->
+        <div>
+          <label for="imagem_capa">Imagem de Capa</label>
+          <input type="file" id="imagem_capa" name="imagem_capa" accept="image/png,image/jpeg" />
+        </div>
+
+        <!-- Botões -->
+        <div>
+          <button type="reset">Cancelar</button>
+          <button type="submit">Cadastrar Projeto</button>
+        </div>
+      </form>
     <div class="text-1"></div>
     <div class="header2">
       <div class="navbar">
