@@ -6,7 +6,7 @@ from pydantic import EmailStr
 from sqlalchemy import select
 
 from .. import schemas
-from ..dependencies import get_db_session, get_current_active_admin
+from ..dependencies import get_db_session
 # from ..core.utils import save_upload_file # Função utilitária para salvar arquivos
 
 from models.db import Professor, Campus, Departamento, Curso
@@ -22,7 +22,7 @@ router = APIRouter()
 )
 async def criar_professor_admin(
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin),
+    current_admin: schemas.AdministradorResponse = Depends(),
     nome: str = Form(...),
     email: EmailStr = Form(...),
     senha: str = Form(..., min_length=6),
@@ -55,7 +55,7 @@ async def criar_professor_admin(
 @router.get("/professores", response_model=List[schemas.ProfessorResponse], summary="Listar e filtrar professores (Admin)")
 async def listar_professores_como_admin(
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin),
+    current_admin: schemas.AdministradorResponse = Depends(),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     nome: Optional[str] = Query(None, description="Filtrar por nome do professor"),
@@ -74,7 +74,7 @@ async def listar_professores_como_admin(
 async def obter_professor_por_id_admin(
     professor_id: int,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     db_professor = await session.get(Professor, professor_id)
     
@@ -87,7 +87,7 @@ async def obter_professor_por_id_admin(
 async def atualizar_professor_como_admin(
     professor_id: int,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin),
+    current_admin: schemas.AdministradorResponse = Depends(),
     nome: Optional[str] = Form(None),
     email: Optional[EmailStr] = Form(None),
     cpf: Optional[str] = Form(None, min_length=11, max_length=11),
@@ -131,7 +131,7 @@ async def atualizar_professor_como_admin(
 async def reenviar_email_acesso_professor(
     professor_id: int,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin),
+    current_admin: schemas.AdministradorResponse = Depends(),
 ):
     """
     Reenvia email com senha (ou link para redefinir) para o professor.
@@ -151,7 +151,7 @@ async def reenviar_email_acesso_professor(
 async def criar_campus(
     campus_in: schemas.CampusCreate,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     campus, _ = await Campus.get_or_create(session, campus_in)
 
@@ -160,7 +160,7 @@ async def criar_campus(
 @router.get("/campus", response_model=List[schemas.CampusResponse], summary="Listar Campus (Admin)")
 async def listar_campus(
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     campus = ( await session.scalars(select(Campus))).all()
     return campus
@@ -169,7 +169,7 @@ async def listar_campus(
 async def criar_departamento(
     departamento_in: schemas.DepartamentoCreate,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     departamento, _ = await Campus.get_or_create(session, departamento_in)
 
@@ -178,7 +178,7 @@ async def criar_departamento(
 @router.get("/departamentos", response_model=List[schemas.DepartamentoResponse], summary="Listar Departamentos (Admin)")
 async def listar_departamentos(
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     departamentos = ( await session.scalars(select(Departamento))).all()
     return departamentos
@@ -188,7 +188,7 @@ async def listar_departamentos(
 async def criar_curso(
     curso_in: schemas.CursoCreate,
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     curso, _ = await Campus.get_or_create(session, curso_in)
 
@@ -197,7 +197,7 @@ async def criar_curso(
 @router.get("/cursos", response_model=List[schemas.CursoResponse], summary="Listar Cursos (Admin)")
 async def listar_cursos(
     session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
+    current_admin: schemas.AdministradorResponse = Depends()
 ):
     cursos = ( await session.scalars(select(Curso))).all()
     return cursos

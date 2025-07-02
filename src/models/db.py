@@ -328,7 +328,7 @@ class ProjetoProfessor(BaseModel):
             )
         )
         if not projeto_professor:
-            projeto_professor = Administrador(projeto_id=projeto_id, professor_id=professor_id)
+            projeto_professor = ProjetoProfessor(projeto_id=projeto_id, professor_id=professor_id)
             just_created = True
             session.add(projeto_professor)
             await session.commit()

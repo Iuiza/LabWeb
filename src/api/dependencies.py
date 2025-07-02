@@ -7,12 +7,16 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from . import security, config, schemas
+from . import security, schemas
+from config import settings
 from models.db import Professor, Administrador, LocalAsyncSession # Importe seus modelos e a sessão
 
 # Esta instância aponta para a sua rota de login.
 # O FastAPI a usará para saber de onde o token vem, especialmente na documentação interativa.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+SECRET_KEY = settings.JWT.SECRET_KEY
+ALGORITHM = settings.JWT.ALGORITHM
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with LocalAsyncSession() as session:
@@ -42,7 +46,7 @@ async def get_current_active_user(
     try:
         # Decodifica o token usando nossa chave secreta e algoritmo
         payload = jwt.decode(
-            token, config.SECRET_KEY, algorithms=[config.ALGORITHM]
+            token, SECRET_KEY, algorithms=[ALGORITHM]
         )
         # O payload que criamos foi: {"sub": user.email, "role": role}
         # Mas o `jwt.decode` transforma em um dict.

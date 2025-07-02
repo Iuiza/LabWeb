@@ -1,39 +1,65 @@
 # app/routers/professores.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Union
+from sqlalchemy import select
 
 from .. import schemas
-from ..dependencies import get_db_session, get_current_active_professor
+from ..dependencies import get_db_session, get_current_active_user
+from models.db import Professor, Administrador
+from .. import security
 
 router = APIRouter()
 
-@router.get("/me", response_model=schemas.ProfessorResponse, summary="Obter dados do professor logado")
-async def ler_dados_professor_logado(
-    current_professor: schemas.ProfessorResponse = Depends(get_current_active_professor)
+@router.get(
+    "/listar",
+    response_model=List[schemas.ProfessorResponse],
+    summary="Listar todos os professores"
+)
+async def listar_professores(session: AsyncSession = Depends(get_db_session)):
+    """
+    Lista todos os professores cadastrados.
+    Esta rota é pública e não requer autenticação.
+    """
+    query = select(Professor).order_by(Professor.nome)
+    result = await session.execute(query)
+    professores = result.scalars().all()
+    return professores
+
+@router.put(
+    "/me/mudar-senha",
+    status_code=status.HTTP_200_OK,
+    summary="Alterar a própria senha"
+)
+async def mudar_propria_senha(
+    dados_senha: schemas.PasswordChange,
+    session: AsyncSession = Depends(get_db_session),
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user)
 ):
     """
-    Retorna os dados do professor atualmente autenticado.
+    Permite que um professor autenticado altere sua própria senha.
+    O usuário deve fornecer a senha antiga e a nova.
     """
-    return current_professor
+    # Garante que apenas um professor está usando esta rota
+    if not isinstance(current_user, Professor):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas professores podem alterar a própria senha por esta rota."
+        )
 
-@router.put("/me/alterar-senha", response_model=schemas.MensagemResponse, summary="Alterar senha do professor logado")
-async def alterar_senha_do_professor_logado(
-    payload: schemas.PasswordChangeSchema,
-    db: AsyncSession = Depends(get_db_session),
-    current_professor: schemas.ProfessorResponse = Depends(get_current_active_professor)
-):
-    """
-    Permite que o professor logado altere sua própria senha. [cite: 15]
-    """
-    success = await update_professor_password(
-        db=db,
-        professor_id=current_professor.id,
-        senha_atual=payload.senha_atual,
-        nova_senha=payload.nova_senha
-    )
-    if not success:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Senha atual incorreta ou erro ao atualizar.")
-    return {"mensagem": "Senha alterada com sucesso."}
+    # 1. Verifica se a senha antiga está correta
+    if not security.verify_password(dados_senha.senha_antiga, current_user.senha):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A senha antiga está incorreta."
+        )
 
-# Outras rotas específicas para professores (ex: listar SEUS projetos com edição)
-# podem ser adicionadas aqui ou nas rotas de `projetos.py` com verificação de permissão.
+    # 2. Cria o hash da nova senha
+    hash_nova_senha = security.hash_password(dados_senha.senha_nova)
+
+    # 3. Atualiza a senha no objeto do usuário e salva no banco
+    current_user.senha = hash_nova_senha
+    session.add(current_user)
+    await session.commit()
+
+    return {"detail": "Senha alterada com sucesso."}

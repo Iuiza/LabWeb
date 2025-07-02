@@ -5,6 +5,20 @@ from datetime import datetime # SQLAlchemy usa datetime para timestamp e datetim
 from enums.status import ProjetoStatusEnum
 from enums.tipo import PublicacaoTipoEnum # Importe seus enums
 
+class ProfessorResponse(BaseModel):
+    id: int
+    nome: str
+    email: EmailStr
+    path_imagem: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class PasswordChange(BaseModel):
+    senha_antiga: str
+    senha_nova: str
+
 # ---- Base e Respostas Simplificadas (para evitar recursão em listas) ----
 class ProfessorSimplificado(BaseModel):
     id: int

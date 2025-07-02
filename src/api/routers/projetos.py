@@ -4,18 +4,19 @@ from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 
 from .. import schemas
-from ..dependencies import get_db_session, get_current_user_base, get_current_active_user
+from ..dependencies import get_db_session, get_current_active_user
 from enums.status import ProjetoStatusEnum
-from models.db import Projeto, Professor, Administrador
+from models.db import Projeto, Professor, Administrador, ProjetoProfessor
 # from ..core.utils import save_upload_file
 
 router = APIRouter()
 
 # RF-2: PERMITIR QUE PROFESSORES E ADMINISTRADORES CADASTREM NOVOS PROJETOS
 @router.post(
-    "/",
+    "/criar",
     response_model=schemas.ProjetoResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Criar novo projeto de extensão"
@@ -78,8 +79,7 @@ async def criar_novo_projeto(
         # path_imagem_salva = await save_upload_file(imagem_capa, "projetos")
         path_imagem_salva = f"static/images/projetos/{imagem_capa.filename}" # Placeholder
 
-    # 4. CRIAR O NOVO PROJETO
-    novo_projeto = Projeto(
+        novo_projeto = Projeto(
         titulo=titulo,
         descricao=descricao,
         path_imagem=path_imagem_salva,
@@ -89,121 +89,196 @@ async def criar_novo_projeto(
         publico=publico,
         curso_id=curso_id
     )
-    
-    # Associar os professores responsáveis
-    novo_projeto.professores = professores_encontrados
 
+    # 2. Crie as associações na tabela projeto_professor
+    # Adicionamos o projeto primeiro para que ele tenha um estado 'pending' na sessão
     session.add(novo_projeto)
-    await session.commit()
-    await session.refresh(novo_projeto)
 
-    return novo_projeto
+    for prof_id in professor_ids_responsaveis:
+        # Cria a linha na tabela de associação
+        associacao = ProjetoProfessor(
+            projeto=novo_projeto,  # Associa o objeto Projeto
+            professor_id=prof_id  # Associa o ID do Professor
+        )
+        session.add(associacao)
+
+    # 3. Agora, comita a transação
+    # Isso salvará o novo projeto e todas as novas associações de uma vez.
+    try:
+        await session.commit()
+    except Exception as e:
+        await session.rollback()
+        # Verificar se um dos IDs de professor não existe pode causar um IntegrityError aqui
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Erro ao salvar: um dos IDs de professor pode não existir. Detalhe: {e}"
+        )
+
+    # 4. Refresque o objeto para carregar as relações antes de retornar
+    # Usamos o eager loading para garantir que a resposta Pydantic não cause erros
+    query_final = (
+        select(Projeto)
+        .where(Projeto.id == novo_projeto.id)
+        .options(
+            selectinload(Projeto.curso),
+            # Carrega através da tabela de associação
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+        )
+    )
+    projeto_final = (await session.execute(query_final)).scalar_one()
+
+    return projeto_final
 
 
-# Visualização pública de projetos (parte do RF-2 "Exibir os projetos em uma página pública") [cite: 18]
-@router.get("/", response_model=List[schemas.ProjetoResponse], summary="Listar projetos de extensão (Público)")
-async def listar_projetos_para_publico(
-    db: AsyncSession = Depends(get_db_session),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100), # Limite menor para visualização pública
-    curso_id: Optional[int] = Query(None, description="Filtrar por ID do curso"),
-    status: Optional[ProjetoStatusEnum] = Query(None, description="Filtrar por status do projeto")
-    # user: Optional[Union[schemas.ProfessorResponse, schemas.AdministradorResponse]] = Depends(get_optional_current_user) # Para debug ou personalização se logado
+@router.get(
+    "/listar",
+    response_model=List[schemas.ProjetoResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Listar todos os projetos de extensão"
+)
+async def listar_projetos(
+    session: AsyncSession = Depends(get_db_session)
 ):
     """
-    Lista os projetos de extensão disponíveis publicamente.
-    Pode ser filtrado por curso e status.
+    Lista todos os projetos de extensão cadastrados na plataforma.
+    Esta rota é pública e não requer autenticação. [cite: 70]
     """
-    projetos = await get_projetos_publicos(
-        db, skip=skip, limit=limit, curso_id=curso_id, status=status
+    # Cria a consulta para buscar todos os projetos
+    query = (
+        select(Projeto)
+        .order_by(Projeto.data_inicio.desc()) # Ordena pelos mais recentes primeiro
+        # Eager Loading: Carrega os dados relacionados para evitar o erro MissingGreenlet
+        # e otimizar as consultas ao banco de dados.
+        .options(
+            selectinload(Projeto.curso),
+            # Carrega a lista de professores através da tabela de associação
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+        )
     )
+
+    # Executa a consulta
+    result = await session.execute(query)
+    projetos = result.scalars().all()
+
     return projetos
 
-@router.get("/{projeto_id}", response_model=schemas.ProjetoResponse, summary="Obter detalhes de um projeto (Público)")
-async def obter_detalhes_projeto_publico(
+@router.get(
+    "/exibir/{projeto_id}",
+    response_model=schemas.ProjetoResponse,
+    summary="Obter detalhes públicos de um projeto específico"
+)
+async def get_detalhes_projeto(
     projeto_id: int,
-    db: AsyncSession = Depends(get_db_session)
-    # user: Optional[Union[schemas.ProfessorResponse, schemas.AdministradorResponse]] = Depends(get_optional_current_user)
+    session: AsyncSession = Depends(get_db_session)
+    # REMOVEMOS a dependência 'current_user' para tornar a rota pública
 ):
     """
-    Retorna os detalhes de um projeto específico.
+    Obtém os dados detalhados de um único projeto.
+    Esta rota é pública e pode ser acessada por qualquer visitante. 
     """
-    db_projeto = await get_projeto_by_id_publico(db, projeto_id=projeto_id)
-    if db_projeto is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado ou não é público.")
-    return db_projeto
+    # A lógica de busca e eager loading continua a mesma
+    query = (
+        select(Projeto)
+        .where(Projeto.id == projeto_id)
+        .options(
+            selectinload(Projeto.curso),
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+        )
+    )
+    projeto = (await session.execute(query)).scalar_one_or_none()
 
-# RF-2: Permitir que os professores e o administrador editem as informações do projeto [cite: 16]
-@router.put("/{projeto_id}", response_model=schemas.ProjetoResponse, summary="Atualizar projeto de extensão")
-async def atualizar_info_projeto(
-    projeto_id: int,
-    db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base),
-    titulo: Optional[str] = Form(None),
-    descricao: Optional[str] = Form(None),
-    data_inicio: Optional[datetime] = Form(None),
-    data_fim: Optional[datetime] = Form(None),
-    status: Optional[ProjetoStatusEnum] = Form(None),
-    publico: Optional[str] = Form(None),
-    curso_id: Optional[int] = Form(None),
-    professor_ids_responsaveis: Optional[List[int]] = Form(None), # Enviar como lista de IDs
-    imagem_capa: Optional[UploadFile] = File(None)
-):
-    """
-    Atualiza as informações de um projeto de extensão. [cite: 16]
-    Apenas o administrador ou professores responsáveis pelo projeto podem editar. [cite: 39] (RN-2)
-    """
-    db_projeto = await get_projeto_by_id(db, projeto_id=projeto_id) # CRUD deve carregar professores
-    if not db_projeto:
+    # Se o projeto com o ID fornecido não existir, retorna um erro 404
+    if not projeto:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
-    # Lógica de permissão (RN-2) [cite: 39]
-    # is_admin = isinstance(current_user, schemas.AdministradorResponse)
-    # is_responsible_professor = False
-    # if isinstance(current_user, schemas.ProfessorResponse):
-    #     if db_projeto.professores and any(p.id == current_user.id for p in db_projeto.professores):
-    #         is_responsible_professor = True
-    # if not (is_admin or is_responsible_professor):
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário não tem permissão para editar este projeto.")
+    # REMOVEMOS todo o bloco de verificação de permissão (if isinstance(current_user...))
 
-    path_imagem_atualizada = db_projeto.path_imagem
-    if imagem_capa:
-        # path_imagem_atualizada = await save_upload_file(imagem_capa, "projetos")
-        path_imagem_atualizada = f"static/images/projetos/{imagem_capa.filename}" # Placeholder
-    
-    # Construir o objeto de atualização, apenas com campos fornecidos
-    update_data = schemas.ProjetoUpdate(
-        titulo=titulo, descricao=descricao, data_inicio=data_inicio, data_fim=data_fim,
-        status=status, publico=publico, curso_id=curso_id,
-        professor_ids_responsaveis=professor_ids_responsaveis, # O CRUD lidará com a lógica de atualizar os professores
-        path_imagem=path_imagem_atualizada
-    ).model_dump(exclude_unset=True) # Envia apenas o que foi modificado
+    return projeto
 
-    if not update_data and not imagem_capa: # Se nada foi enviado para atualizar
-         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nenhum dado fornecido para atualização.")
-
-    projeto_atualizado = await update_projeto(db=db, projeto_id=projeto_id, projeto_update_data=update_data)
-    return projeto_atualizado
-
-
-# RF-2: Permitir a exclusão do projeto com confirmação de identidade (aqui, "identidade" = token válido + permissão) [cite: 18]
-@router.delete("/{projeto_id}", response_model=schemas.MensagemResponse, summary="Excluir projeto de extensão")
-async def excluir_projeto_extensao(
+# 2. ROTA PARA SALVAR AS INFORMAÇÕES EDITADAS
+@router.put(
+    "/editar/{projeto_id}",
+    response_model=schemas.ProjetoResponse,
+    summary="Editar um projeto de extensão"
+)
+async def editar_projeto(
     projeto_id: int,
-    db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base)
+    session: AsyncSession = Depends(get_db_session),
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user),
+    # Os dados vêm do formulário de edição, assim como na criação
+    titulo: str = Form(...),
+    descricao: Optional[str] = Form(None),
+    data_inicio: datetime = Form(...),
+    data_fim: Optional[datetime] = Form(None),
+    status: ProjetoStatusEnum = Form(...),
+    publico: str = Form(...),
+    curso_id: int = Form(...),
+    professor_ids_responsaveis: List[int] = Form(...),
+    imagem_capa: Optional[UploadFile] = File(None) # Opcional: para alterar a imagem
 ):
     """
-    Exclui um projeto de extensão. [cite: 18]
-    Apenas o administrador ou professores responsáveis. [cite: 39] (RN-2)
-    RN-3: Ao excluir um projeto, todas as postagens associadas a ele devem ser também removidas ou realocadas. [cite: 42]
+    Permite que professores e administradores editem as informações do projeto. 
+    - Um professor só pode editar um projeto se for um dos responsáveis.
+    - Um administrador pode editar qualquer projeto.
     """
-    # Lógica de permissão similar à de atualização
-    # db_projeto = await crud.get_projeto_by_id(db, projeto_id=projeto_id) # Carregar para verificar permissão
-    # ... verificar permissão ...
+    # Busca o projeto existente no banco
+    projeto_a_editar = await session.get(Projeto, projeto_id, options=[selectinload(Projeto.link_professores)])
 
-    # CRUD.delete_projeto deve implementar a lógica de RN-3 [cite: 42]
-    success = await delete_projeto(db=db, projeto_id=projeto_id, user_id_deletando=current_user.id)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado ou falha ao deletar.")
-    return {"mensagem": f"Projeto {projeto_id} e suas postagens associadas foram excluídos/realocados."}
+    if not projeto_a_editar:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
+
+    # Lógica de autorização para edição
+    if isinstance(current_user, Professor):
+        professor_ids_do_projeto = {link.professor_id for link in projeto_a_editar.link_professores}
+        if current_user.id not in professor_ids_do_projeto:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Você não tem permissão para editar este projeto."
+            )
+
+    # Lógica para lidar com a imagem (se uma nova for enviada)
+    if imagem_capa:
+        # Aqui você pode adicionar lógica para deletar a imagem antiga e salvar a nova
+        path_imagem_salva = f"static/images/projetos/{imagem_capa.filename}"
+        projeto_a_editar.path_imagem = path_imagem_salva
+
+    # Atualiza os campos do projeto com os novos dados
+    projeto_a_editar.titulo = titulo
+    projeto_a_editar.descricao = descricao
+    projeto_a_editar.data_inicio = data_inicio
+    projeto_a_editar.data_fim = data_fim
+    projeto_a_editar.status = status.value
+    projeto_a_editar.publico = publico
+    projeto_a_editar.curso_id = curso_id
+
+    # Atualiza os professores responsáveis (abordagem: remover antigos, adicionar novos)
+    # 1. Remove as associações antigas
+    for link in projeto_a_editar.link_professores:
+        await session.delete(link)
+    
+    # 2. Cria as novas associações
+    novas_associacoes = [
+        ProjetoProfessor(projeto_id=projeto_id, professor_id=prof_id)
+        for prof_id in professor_ids_responsaveis
+    ]
+    session.add_all(novas_associacoes)
+
+    try:
+        await session.commit()
+        await session.refresh(projeto_a_editar)
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=400, detail=f"Erro ao atualizar o projeto: {e}")
+
+    # Para a resposta, recarregamos com todas as informações
+    query_final = (
+        select(Projeto)
+        .where(Projeto.id == projeto_a_editar.id)
+        .options(
+            selectinload(Projeto.curso),
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+        )
+    )
+    projeto_final = (await session.execute(query_final)).scalar_one()
+
+    return projeto_final

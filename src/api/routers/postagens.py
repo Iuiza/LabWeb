@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
 from .. import schemas
-from ..dependencies import get_db_session, get_current_user_base, get_optional_current_user
+from ..dependencies import get_db_session
 from enums.tipo import PublicacaoTipoEnum
 # from ..core.utils import save_upload_file
 
@@ -21,7 +21,7 @@ router = APIRouter()
 )
 async def criar_nova_postagem(
     db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base), # Professor ou Admin
+    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(), # Professor ou Admin
     titulo: str = Form(...),
     conteudo: str = Form(...),
     tipo: PublicacaoTipoEnum = Form(...),
@@ -117,7 +117,7 @@ async def obter_detalhes_postagem_publica(
 async def atualizar_postagem_existente(
     postagem_id: int,
     db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base),
+    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(),
     titulo: Optional[str] = Form(None),
     conteudo: Optional[str] = Form(None),
     tipo: Optional[PublicacaoTipoEnum] = Form(None),
@@ -167,7 +167,7 @@ async def atualizar_postagem_existente(
 async def excluir_postagem_existente(
     postagem_id: int,
     db: AsyncSession = Depends(get_db_session),
-    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base)
+    current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends()
 ):
     """
     Exclui uma postagem. [cite: 20]
