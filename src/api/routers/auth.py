@@ -1,13 +1,17 @@
 # app/routers/auth.py
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm # Conveniente para login
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from .. import schemas
 from ..dependencies import get_db_session
-# from ..core.security import create_access_token # Sua implementação
-from models.db import Administrador # Importar o modelo de Administrador
+from models.db import Administrador, Professor # Importar ambos os modelos
+from .. import security
+from config import settings
+
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT.ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter()
 
@@ -20,14 +24,35 @@ async def login_for_access_token(
     Autentica um usuário (professor ou administrador) e retorna um token de acesso.
     O campo 'username' do formulário é o email.
     """
+    user = None
+    role = None
 
-    user = (await session.execute(
-        select(Administrador).where(
-            Administrador.email == form_data.username,
-            Administrador.senha == form_data.password
+    # 1. Tenta encontrar o usuário como Administrador
+    admin_result = await session.execute(
+        select(Administrador).where(Administrador.email == form_data.username)
+    )
+    user_admin = admin_result.scalar_one_or_none()
+
+    if user_admin:
+        # Verifica a senha do administrador
+        if security.verify_password(form_data.password, user_admin.senha):
+            user = user_admin
+            role = "administrador"
+    
+    # 2. Se não for admin, tenta encontrar como Professor
+    if not user:
+        professor_result = await session.execute(
+            select(Professor).where(Professor.email == form_data.username)
         )
-    )).scalar_one_or_none()
+        user_professor = professor_result.scalar_one_or_none()
+        
+        if user_professor:
+            # Verifica a senha do professor
+            if security.verify_password(form_data.password, user_professor.senha):
+                user = user_professor
+                role = "professor"
 
+    # 3. Se não encontrou usuário ou a senha não bateu
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,13 +60,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Determinar o papel do usuário para o token
-    role = "administrador" if isinstance(user, schemas.AdministradorResponse) else "professor"
+    # 4. Cria o token de acesso com o papel (role) e o email (sub)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    # access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    # access_token = create_access_token(
-    #     data={"sub": user.email, "role": role}, expires_delta=access_token_expires
-    # )
-    # Placeholder para o token:
-    access_token = f"fake_token_for_{role}_{user.email}"
+    # O "subject" do token conterá o email e o papel para uso futuro
+    token_data = {"sub": user.email, "role": role}
+    access_token = security.create_access_token(
+        subject=token_data, expires_delta=access_token_expires
+    )
+    
     return {"access_token": access_token, "token_type": "bearer"}

@@ -3,16 +3,17 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
+from sqlalchemy import select, and_
 
 from .. import schemas
-from ..dependencies import get_db_session, get_current_user_base, get_optional_current_user
+from ..dependencies import get_db_session, get_current_user_base, get_current_active_user
 from enums.status import ProjetoStatusEnum
-from models.db import Projeto 
+from models.db import Projeto, Professor, Administrador
 # from ..core.utils import save_upload_file
 
 router = APIRouter()
 
-# RF-2: PERMITIR QUE PROFESSORES E ADMINISTRADORES CADASTREM NOVOS PROJETOS [cite: 16]
+# RF-2: PERMITIR QUE PROFESSORES E ADMINISTRADORES CADASTREM NOVOS PROJETOS
 @router.post(
     "/",
     response_model=schemas.ProjetoResponse,
@@ -20,50 +21,81 @@ router = APIRouter()
     summary="Criar novo projeto de extensão"
 )
 async def criar_novo_projeto(
+    # Dependências
     session: AsyncSession = Depends(get_db_session),
-    # current_user: Union[schemas.ProfessorResponse, schemas.AdministradorResponse] = Depends(get_current_user_base), # Professor ou Admin
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user),
+    
+    # Dados do Formulário
     titulo: str = Form(...),
     descricao: Optional[str] = Form(None),
-    data_inicio: datetime = Form(...), # FastAPI converterá para datetime
+    data_inicio: datetime = Form(...),
     data_fim: Optional[datetime] = Form(None),
     status: ProjetoStatusEnum = Form(ProjetoStatusEnum.ATIVO),
-    publico: str = Form(...), # Avaliar o que este campo significa, ex: "Sim", "Não", ou URL
+    publico: str = Form(...),
     curso_id: int = Form(...),
-    professor_ids_responsaveis: List[int] = Form(...), # Lista de IDs
+    professor_ids_responsaveis: List[int] = Form(...),
     imagem_capa: Optional[UploadFile] = File(None)
 ):
     """
-    Cria um novo projeto de extensão. [cite: 16]
-    Apenas professores e administradores autenticados.
-    Verifica se título do projeto já foi usado por projeto ativo. [cite: 16]
+    Cria um novo projeto de extensão. 
+    Apenas professores e administradores autenticados podem realizar esta ação. 
+    Verifica se o título do projeto já foi usado por um projeto ativo. 
     """
-    # Verificar se o título já existe para um projeto ativo (RF-2) [cite: 16]
-    # existing_active_project = await crud.get_active_project_by_title(db, titulo=titulo)
-    # if existing_active_project:
-    #     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Já existe um projeto ativo com este título.")
+    # 1. VERIFICAR TÍTULO DUPLICADO (RF-2)
+    query_titulo_existente = select(Projeto).where(
+        and_(
+            Projeto.titulo == titulo,
+            Projeto.status == ProjetoStatusEnum.ATIVO
+        )
+    )
+    result = await session.execute(query_titulo_existente)
+    if result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, 
+            detail="Já existe um projeto ativo com este título."
+        )
 
+    # 2. APLICAR REGRAS DE NEGÓCIO BASEADAS NO PAPEL (ROLE)
+    if isinstance(current_user, Professor):
+        # RN: O professor que está criando o projeto DEVE estar na lista de responsáveis. 
+        if current_user.id not in professor_ids_responsaveis:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="O professor que cria o projeto deve estar na lista de responsáveis."
+            )
+
+    # (Opcional, mas recomendado) Verificar se os IDs dos professores responsáveis existem
+    query_professores = select(Professor).where(Professor.id.in_(professor_ids_responsaveis))
+    professores_result = await session.execute(query_professores)
+    professores_encontrados = professores_result.scalars().all()
+    if len(professores_encontrados) != len(set(professor_ids_responsaveis)):
+        raise HTTPException(status_code=404, detail="Um ou mais IDs de professores responsáveis não foram encontrados.")
+
+    # 3. Lógica para salvar a imagem (se houver)
     path_imagem_salva = None
     if imagem_capa:
+        # A implementação real de `save_upload_file` é recomendada
         # path_imagem_salva = await save_upload_file(imagem_capa, "projetos")
         path_imagem_salva = f"static/images/projetos/{imagem_capa.filename}" # Placeholder
 
-    novo_projeto = await Projeto.get_or_create(
-        session=session,
+    # 4. CRIAR O NOVO PROJETO
+    novo_projeto = Projeto(
         titulo=titulo,
+        descricao=descricao,
         path_imagem=path_imagem_salva,
-        data_inicio=data_inicio,    
-        status=status,
+        data_inicio=data_inicio,
+        data_fim=data_fim,
+        status=status.value,
         publico=publico,
-        curso_id=curso_id,
+        curso_id=curso_id
     )
+    
+    # Associar os professores responsáveis
+    novo_projeto.professores = professores_encontrados
 
-    # O CRUD.create_projeto deve buscar os professores pelos IDs e associá-los.
-    # Se o current_user for um professor, ele deve ser um dos responsáveis.
-    # if isinstance(current_user, schemas.ProfessorResponse):
-    #     if current_user.id not in professor_ids_responsaveis:
-    #         # Ou adiciona automaticamente, ou levanta erro, dependendo da regra.
-    #         # professor_ids_responsaveis.append(current_user.id)
-    #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Professor criando o projeto deve estar na lista de responsáveis.")
+    session.add(novo_projeto)
+    await session.commit()
+    await session.refresh(novo_projeto)
 
     return novo_projeto
 

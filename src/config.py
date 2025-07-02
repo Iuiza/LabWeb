@@ -7,3 +7,4 @@ settings = Dynaconf(
     root_path=Path(__file__).parent,
     merge_enabled=True,
 )
+
