@@ -19,6 +19,27 @@ class PasswordChange(BaseModel):
     senha_antiga: str
     senha_nova: str
 
+class ProjetoSimplesResponse(BaseModel):
+    id: int
+    titulo: str
+
+    class Config:
+        from_attributes = True
+
+class PublicacaoResponse(BaseModel):
+    id: int
+    titulo: str
+    conteudo: str
+    tipo: PublicacaoTipoEnum
+    data_publicacao: datetime
+    path_imagem: str | None = None
+    # Inclui os dados do professor e do projeto na resposta
+    professor: ProfessorResponse # Reutiliza o schema que já temos
+    projeto: ProjetoSimplesResponse
+
+    class Config:
+        from_attributes = True
+
 # ---- Base e Respostas Simplificadas (para evitar recursão em listas) ----
 class ProfessorSimplificado(BaseModel):
     id: int
