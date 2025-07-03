@@ -19,6 +19,7 @@ Este projeto foi desenvolvido para a disciplina de Laboratório de Desenvolvimen
     * **Autenticação:** JWT (JSON Web Tokens) com Passlib para hashing de senhas
     * **Servidor ASGI:** Uvicorn
 
-# Autores:
-    **Caio Melo**
-    **Luiza Limoeiro**
+### Autores:
+
+* Caio Melo
+* Luiza Limoeiro
