@@ -149,8 +149,8 @@ async def listar_projetos(
         # e otimizar as consultas ao banco de dados.
         .options(
             selectinload(Projeto.curso),
-            # Carrega a lista de professores através da tabela de associação
-            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            selectinload(Projeto.publicacoes)
         )
     )
 
