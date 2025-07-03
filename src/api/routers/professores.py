@@ -1,5 +1,4 @@
-# app/routers/professores.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Union
 from sqlalchemy import select
@@ -63,3 +62,40 @@ async def mudar_propria_senha(
     await session.commit()
 
     return {"detail": "Senha alterada com sucesso."}
+
+@router.put(
+    "/me/foto-perfil",
+    response_model=schemas.ProfessorResponse,
+    summary="Atualizar a foto de perfil do professor"
+)
+async def atualizar_foto_perfil(
+    imagem: UploadFile = File(...),
+    current_user: Professor = Depends(get_current_active_user), # Garante que está logado
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    Permite que um professor autenticado envie ou atualize sua foto de perfil.
+    """
+    # Garante que o usuário logado é um professor
+    if not isinstance(current_user, Professor):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas professores podem atualizar a foto de perfil."
+        )
+
+    # Lógica para salvar o arquivo (semelhante à de publicações)
+    # Você pode criar uma função reutilizável para isso
+    # Por segurança, o nome do arquivo pode ser baseado no ID do usuário para evitar conflitos
+    nome_arquivo = f"professor{current_user.id}{imagem.filename}"
+    path_imagem_salva = f"static/images/professores/{nome_arquivo}"
+
+    # with open(path_imagem_salva, "wb") as buffer:
+    #     buffer.write(await imagem.read())
+
+    current_user.path_imagem = path_imagem_salva
+
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+
+    return current_user

@@ -1,6 +1,6 @@
 # app/main.py
 from fastapi import FastAPI
-from .routers import auth, admin, professores, projetos, postagens
+from .routers import auth, admin, professores, projetos, postagens, campus, departamentos, cursos
 # from .core.config import settings # Se você tiver um arquivo de configuração
 
 app = FastAPI(
@@ -15,6 +15,9 @@ app.include_router(admin.router, prefix="/admin", tags=["Administração"])
 app.include_router(professores.router, prefix="/professores", tags=["Professores"])
 app.include_router(projetos.router, prefix="/projetos", tags=["Projetos"])
 app.include_router(postagens.router, prefix="/postagens", tags=["Postagens (Notícias e Eventos)"])
+app.include_router(campus.router, prefix="/campus", tags=["Campus"])
+app.include_router(departamentos.router, prefix="/departamentos", tags=["Departamentos"])
+app.include_router(cursos.router, prefix="/cursos", tags=["Cursos"])
 
 @app.get("/", tags=["Root"])
 async def read_root():

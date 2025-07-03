@@ -1,5 +1,4 @@
-# app/routers/postagens.py
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,7 +8,6 @@ from .. import schemas
 from ..dependencies import get_db_session, get_current_active_user
 from enums.tipo import PublicacaoTipoEnum
 from models.db import Publicacao, Projeto, Professor, Administrador
-# from ..core.utils import save_upload_file
 
 router = APIRouter()
 
@@ -48,12 +46,12 @@ async def criar_publicacao(
     projeto_id: int = Form(...),
     imagem: Optional[UploadFile] = File(None),
 ):
-    # RN-3: Cada notícia/evento deve estar vinculada a um projeto [cite: 117]
+    # RN-3: Cada notícia/evento deve estar vinculada a um projeto
     projeto = await session.get(Projeto, projeto_id, options=[selectinload(Projeto.link_professores)])
     if not projeto:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
 
-    # Autorização: Professor só pode postar em projeto do qual é responsável [cite: 115]
+    # Autorização: Professor só pode postar em projeto do qual é responsável
     if isinstance(current_user, Professor):
         professor_ids_do_projeto = {link.professor_id for link in projeto.link_professores}
         if current_user.id not in professor_ids_do_projeto:
@@ -90,7 +88,7 @@ async def editar_publicacao(
     if not publicacao:
         raise HTTPException(status_code=404, detail="Publicação não encontrada.")
 
-    # Autorização: Apenas o professor que criou a postagem ou um admin pode editar [cite: 90]
+    # Autorização: Apenas o professor que criou a postagem ou um admin pode editar
     if isinstance(current_user, Professor) and publicacao.professor_id != current_user.id:
         raise HTTPException(status_code=403, detail="Você não tem permissão para editar esta publicação.")
 

@@ -1,5 +1,4 @@
-# app/routers/projetos.py
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
@@ -10,7 +9,6 @@ from .. import schemas
 from ..dependencies import get_db_session, get_current_active_user
 from enums.status import ProjetoStatusEnum
 from models.db import Projeto, Professor, Administrador, ProjetoProfessor
-# from ..core.utils import save_upload_file
 
 router = APIRouter()
 

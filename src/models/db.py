@@ -30,7 +30,6 @@ from config import settings
 from enums.status import ProjetoStatusEnum
 from enums.tipo import PublicacaoTipoEnum
 from models.db_annotations import (
-    varchar,
     text,
     timestamp,
     datetime_default_now,
@@ -110,14 +109,14 @@ class Professor(BaseModel):
     nome: Mapped[str]
     email: Mapped[str]
     senha: Mapped[str]
-    path_imagem: Mapped[str]
+    path_imagem: Mapped[str | None]
     cpf: Mapped[str] = mapped_column(VARCHAR(11))
 
     link_projetos: Mapped[list["ProjetoProfessor"]] = relationship(back_populates="professor")
     publicacoes: Mapped[list["Publicacao"]] = relationship(back_populates="professor")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str, cpf: str, path_imagem: str):
+    async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str, cpf: str):
         just_created = False
 
         professor = await session.scalar(
@@ -127,7 +126,7 @@ class Professor(BaseModel):
             )
         )
         if not professor:
-            professor = Professor(nome=nome, email=email, senha=senha, path_imagem=path_imagem, cpf=cpf)
+            professor = Professor(nome=nome, email=email, senha=senha, cpf=cpf)
             just_created = True
             session.add(professor)
             await session.commit()

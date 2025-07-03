@@ -1,203 +1,117 @@
-# app/routers/admin.py
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
-from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import EmailStr
+from sqlalchemy import select
 from sqlalchemy import select
 
-from .. import schemas
-from ..dependencies import get_db_session
-# from ..core.utils import save_upload_file # Função utilitária para salvar arquivos
-
-from models.db import Professor, Campus, Departamento, Curso
+from .. import schemas, security
+from ..dependencies import get_db_session, get_current_admin_user
+from models.db import Professor, Administrador
+from ..email_service import enviar_email_acesso
 
 router = APIRouter()
 
-# RF-1: PERMITIR QUE O ADMINISTRADOR CADASTRE NOVOS PROFESSORES
+# ROTA PARA ADMINISTRADOR CRIAR NOVO PROFESSOR
 @router.post(
-    "/professores",
+    "/cadastrar",
     response_model=schemas.ProfessorResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Cadastrar novo professor (Admin)"
+    summary="Cadastrar um novo professor (Admin)"
 )
-async def criar_professor_admin(
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(),
-    nome: str = Form(...),
-    email: EmailStr = Form(...),
-    senha: str = Form(..., min_length=6),
-    cpf: str = Form(..., min_length=11, max_length=11),
-    # "departamento de atuação" (RF-1) não é um campo direto no modelo Professor,
-    # mas pode ser um campo de texto informativo ou gerenciado de outra forma.
-    # Aqui, assumimos que não é um campo direto no modelo Professor para este endpoint.
-    # Se fosse um FK: departamento_id: int = Form(...),
-    imagem_perfil: Optional[UploadFile] = File(None)
+async def cadastrar_professor(
+    dados_professor: schemas.ProfessorCreate,
+    admin: Administrador = Depends(get_current_admin_user),
+    session: AsyncSession = Depends(get_db_session)
 ):
     """
-    Permite que um administrador cadastre um novo professor.
-    A senha será hasheada antes de salvar.
-    O email de boas-vindas é enviado.
+    Permite que um administrador cadastre um novo professor no sistema. [cite: 81]
+    A senha fornecida é hasheada antes de ser salva. [cite: 107]
+    Um e-mail com os dados de acesso é enviado ao professor. [cite: 82]
     """
-    path_imagem_salva = f"static/images/professores/{imagem_perfil.filename}"
+    # Verifica se o email ou CPF já existem
+    query = select(Professor).where((Professor.email == dados_professor.email) | (Professor.cpf == dados_professor.cpf))
+    if (await session.execute(query)).scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Email ou CPF já cadastrado.")
 
-    novo_professor, just_created = Professor.get_or_create(session, nome, email, senha, cpf, path_imagem_salva)
+    # Hashear a senha antes de salvar
+    senha_hasheada = security.hash_password(dados_professor.senha)
 
-    if not just_created:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email ou CPF já cadastrado.")
+    novo_professor = Professor(
+        nome=dados_professor.nome,
+        email=dados_professor.email,
+        cpf=dados_professor.cpf,
+        senha=senha_hasheada
+    )
+    session.add(novo_professor)
 
-    # Lógica para enviar email para o professor com login, senha e link (RF-1)
-    # await send_new_professor_email(email_to=novo_professor.email, nome=novo_professor.nome, senha_raw=senha)
+    await session.commit()
+    await session.refresh(novo_professor)
+
+    # Envia o email com a senha original (não hasheada)
+    await enviar_email_acesso(email_destinatario=novo_professor.email, senha=dados_professor.senha)
     
     return novo_professor
 
-
-# RF-8: PERMITIR QUE O ADMINISTRADOR GERENCIE PROFESSORES
-@router.get("/professores", response_model=List[schemas.ProfessorResponse], summary="Listar e filtrar professores (Admin)")
-async def listar_professores_como_admin(
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=200),
-    nome: Optional[str] = Query(None, description="Filtrar por nome do professor"),
-    # departamento: Optional[str] = Query(None, description="Filtrar por departamento de atuação"), # RF-1. Como não é FK, seria filtro em campo texto se existir.
-    email: Optional[EmailStr] = Query(None, description="Filtrar por email"),
-    # status_conta: Optional[bool] = Query(None, description="Filtrar por status da conta (ativo/inativo)"), # Modelo Professor não tem 'is_active'
-):
-    """
-    Lista professores com filtros.
-    """
-    professores = ( await session.scalars(select(Professor))).all()
-
-    return professores
-
-@router.get("/professores/{professor_id}", response_model=schemas.ProfessorResponse, summary="Obter professor por ID (Admin)")
-async def obter_professor_por_id_admin(
+# ROTA PARA ADMINISTRADOR EDITAR PROFESSOR
+@router.put(
+    "/editar/{professor_id}",
+    response_model=schemas.ProfessorResponse,
+    summary="Editar um professor (Admin)"
+)
+async def editar_professor(
     professor_id: int,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
+    dados_edicao: schemas.ProfessorUpdate,
+    admin: Administrador = Depends(get_current_admin_user),
+    session: AsyncSession = Depends(get_db_session)
 ):
-    db_professor = await session.get(Professor, professor_id)
-    
-    if not db_professor:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professor não encontrado")
-    
-    return db_professor
+    """
+    Permite que um administrador edite as informações de um professor. [cite: 100]
+    """
+    professor = await session.get(Professor, professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado.")
 
-@router.put("/professores/{professor_id}", response_model=schemas.ProfessorResponse, summary="Atualizar professor (Admin)")
-async def atualizar_professor_como_admin(
+    # Atualiza os dados fornecidos (ignora os que forem None)
+    update_data = dados_edicao.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(professor, key, value)
+    
+    session.add(professor)
+    await session.commit()
+    await session.refresh(professor)
+    
+    return professor
+
+# ROTA PARA REENVIAR EMAIL DE ACESSO (SEM ALTERAR SENHA)
+@router.post(
+    "/{professor_id}/reenviar-acesso",
+    status_code=status.HTTP_200_OK,
+    summary="Reenviar e-mail de acesso (Admin)"
+)
+async def reenviar_acesso_professor(
     professor_id: int,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(),
-    nome: Optional[str] = Form(None),
-    email: Optional[EmailStr] = Form(None),
-    cpf: Optional[str] = Form(None, min_length=11, max_length=11),
-    # status_conta: Optional[bool] = Form(None), # RF-8: Ativar/desativar. Adicionar 'is_active' ao modelo Professor.
-    # departamento: Optional[str] = Form(None), # RF-8: Editar departamento.
-    imagem_perfil: Optional[UploadFile] = File(None)
+    admin: Administrador = Depends(get_current_admin_user),
+    session: AsyncSession = Depends(get_db_session)
 ):
     """
-    Atualiza informações de um professor, ativa/desativa conta.
-    Se uma nova senha for fornecida, ela será atualizada (RF-8: Editar ... senha).
+    Gera uma NOVA senha temporária e a envia por e-mail para o professor. [cite: 100]
+    Isto é mais seguro do que reenviar uma senha antiga.
     """
-    db_professor = await session.get(Professor, professor_id)
+    professor = await session.get(Professor, professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado.")
 
-    if not db_professor:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professor não encontrado")
+    # Gera uma nova senha temporária (ex: 8 caracteres aleatórios)
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    nova_senha_temporaria = ''.join(secrets.choice(alphabet) for i in range(8))
     
-    db_professor.nome = nome if nome else db_professor.nome
-    db_professor.email = email if email else db_professor.email     
+    # Atualiza o hash da senha no banco
+    professor.senha = security.hash_password(nova_senha_temporaria)
+    session.add(professor)
+    await session.commit()
 
-    await session.commit()  # Salva as alterações no banco de dados
-
-
-    return db_professor
-
-# @router.delete("/professores/{professor_id}", response_model=schemas.MensagemResponse, summary="Excluir professor (Admin)")
-# async def excluir_professor_como_admin(
-#     professor_id: int,
-#     # justificativa: str = Query(..., description="Justificativa para exclusão (RF-8)"), # Não está no modelo
-#     db: AsyncSession = Depends(get_db_session),
-#     current_admin: schemas.AdministradorResponse = Depends(get_current_active_admin)
-# ):
-#     """
-#     Exclui a conta de um professor.
-#     """
-#     success = await crud.delete_professor(db=db, professor_id=professor_id)
-#     if not success:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professor não encontrado")
-#     return {"mensagem": f"Professor {professor_id} excluído com sucesso."}
-
-@router.post("/professores/{professor_id}/reenviar-email-acesso", response_model=schemas.MensagemResponse, summary="Reenviar email com dados de acesso (Admin)")
-async def reenviar_email_acesso_professor(
-    professor_id: int,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends(),
-):
-    """
-    Reenvia email com senha (ou link para redefinir) para o professor.
-    """
-    db_professor = await session.get(Professor, professor_id)
+    # Envia o e-mail com a NOVA senha
+    await enviar_email_acesso(email_destinatario=professor.email, senha=nova_senha_temporaria)
     
-    if not db_professor:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Professor não encontrado")
-    
-    # Lógica para gerar nova senha temporária ou link de redefinição e enviar email
-    # await send_access_email(email_to=db_professor.email, nome=db_professor.nome, ...)
-    return {"mensagem": f"Email com informações de acesso reenviado para {db_professor.email}."}
-
-
-# --- Gerenciamento de Cursos, Departamentos, Campus (Admin) ---
-@router.post("/campus", response_model=schemas.CampusResponse, status_code=status.HTTP_201_CREATED, summary="Criar novo Campus (Admin)")
-async def criar_campus(
-    campus_in: schemas.CampusCreate,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    campus, _ = await Campus.get_or_create(session, campus_in)
-
-    return campus
-
-@router.get("/campus", response_model=List[schemas.CampusResponse], summary="Listar Campus (Admin)")
-async def listar_campus(
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    campus = ( await session.scalars(select(Campus))).all()
-    return campus
-
-@router.post("/departamentos", response_model=schemas.DepartamentoResponse, status_code=status.HTTP_201_CREATED, summary="Criar novo Departamento (Admin)")
-async def criar_departamento(
-    departamento_in: schemas.DepartamentoCreate,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    departamento, _ = await Campus.get_or_create(session, departamento_in)
-
-    return departamento
-
-@router.get("/departamentos", response_model=List[schemas.DepartamentoResponse], summary="Listar Departamentos (Admin)")
-async def listar_departamentos(
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    departamentos = ( await session.scalars(select(Departamento))).all()
-    return departamentos
-
-
-@router.post("/cursos", response_model=schemas.CursoResponse, status_code=status.HTTP_201_CREATED, summary="Criar novo Curso (Admin)")
-async def criar_curso(
-    curso_in: schemas.CursoCreate,
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    curso, _ = await Campus.get_or_create(session, curso_in)
-
-    return curso
-
-@router.get("/cursos", response_model=List[schemas.CursoResponse], summary="Listar Cursos (Admin)")
-async def listar_cursos(
-    session: AsyncSession = Depends(get_db_session),
-    current_admin: schemas.AdministradorResponse = Depends()
-):
-    cursos = ( await session.scalars(select(Curso))).all()
-    return cursos
+    return {"detail": f"Um e-mail com uma nova senha de acesso foi enviado para {professor.email}."}

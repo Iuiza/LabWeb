@@ -86,4 +86,16 @@ async def get_current_active_user(
         
     return user
 
-
+async def get_current_admin_user(
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user)
+) -> Administrador:
+    """
+    Verifica se o usuário autenticado é um Administrador.
+    Levanta uma exceção 403 Forbidden se não for.
+    """
+    if not isinstance(current_user, Administrador):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado. Apenas administradores podem realizar esta ação."
+        )
+    return current_user
