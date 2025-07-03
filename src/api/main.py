@@ -1,7 +1,5 @@
-# app/main.py
 from fastapi import FastAPI
 from .routers import auth, admin, professores, projetos, postagens, campus, departamentos, cursos
-# from .core.config import settings # Se você tiver um arquivo de configuração
 
 app = FastAPI(
     title="Extensão UNEB em Foco API",
@@ -22,9 +20,3 @@ app.include_router(cursos.router, prefix="/cursos", tags=["Cursos"])
 @app.get("/", tags=["Root"])
 async def read_root():
     return {"message": "Bem-vindo à API Extensão UNEB em Foco!"}
-
-# Configuração para servir arquivos estáticos e templates (se necessário)
-# from fastapi.staticfiles import StaticFiles
-# from pathlib import Path
-# BASE_DIR = Path(__file__).resolve().parent
-# app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
