@@ -12,7 +12,7 @@ router = APIRouter()
 
 # ROTA 1: LISTAR TODOS OS DEPARTAMENTOS (PÚBLICA)
 @router.get(
-    "/",
+    "/listar",
     response_model=List[schemas.DepartamentoResponse],
     summary="Listar todos os departamentos"
 )
@@ -33,7 +33,7 @@ async def listar_departamentos(session: AsyncSession = Depends(get_db_session)):
 
 # ROTA 2: CRIAR UM NOVO DEPARTAMENTO (ADMIN)
 @router.post(
-    "/",
+    "/criar",
     response_model=schemas.DepartamentoResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Criar um novo departamento (Admin)"

@@ -10,7 +10,7 @@ from models.db import Administrador, Campus
 router = APIRouter()
 
 @router.get(
-    "/",
+    "/listar",
     response_model=List[schemas.CampusResponse],
     summary="Listar todos os campus"
 )
@@ -25,7 +25,7 @@ async def listar_campus(session: AsyncSession = Depends(get_db_session)):
     return campi
 
 @router.post(
-    "/",
+    "/criar",
     response_model=schemas.CampusResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Criar um novo campus (Admin)"

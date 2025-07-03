@@ -6,12 +6,12 @@ from sqlalchemy.orm import selectinload
 
 from .. import schemas
 from ..dependencies import get_db_session, get_current_admin_user
-from models.db import Administrador, Campus, Departamento, Curso
+from models.db import Administrador, Departamento, Curso
 
 router = APIRouter()
 
 @router.get(
-    "/",
+    "/listar",
     response_model=List[schemas.CursoResponse],
     summary="Listar todos os cursos"
 )
@@ -35,7 +35,7 @@ async def listar_cursos(session: AsyncSession = Depends(get_db_session)):
 
 # ROTA 2: CRIAR UM NOVO CURSO (ADMIN)
 @router.post(
-    "/",
+    "/criar",
     response_model=schemas.CursoResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Criar um novo curso (Admin)"
@@ -74,7 +74,15 @@ async def criar_curso(
     )
     session.add(novo_curso)
     await session.commit()
-    # Recarrega para incluir os relacionamentos na resposta
-    await session.refresh(novo_curso, ["departamento"])
-    
-    return novo_curso
+
+    query_final = (
+        select(Curso)
+        .where(Curso.id == novo_curso.id)
+        .options(
+            # Carrega o departamento e, dentro dele, o campus
+            selectinload(Curso.departamento).selectinload(Departamento.campus)
+        )
+    )
+    curso_final = (await session.execute(query_final)).scalar_one()
+
+    return curso_final
