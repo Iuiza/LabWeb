@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/vars.css">
+    <link rel="stylesheet" href="../static/styles/style.css">
+    <style>
+        /* CSS Reset */
+        a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+        
+        /* Estilos específicos para a página de detalhes */
+        body { font-family: sans-serif; color: #333; }
+        .detalhe-container { max-width: 800px; margin: 40px auto; padding: 20px; }
+        .detalhe-imagem-principal { width: 100%; height: auto; max-height: 450px; object-fit: cover; border-radius: 8px; margin-bottom: 20px; }
+        .detalhe-titulo { font-size: 2.5rem; margin-bottom: 10px; }
+        .detalhe-meta { color: #666; margin-bottom: 30px; }
+        .detalhe-meta a { color: #0056b3; text-decoration: none; }
+        .detalhe-meta a:hover { text-decoration: underline; }
+        .detalhe-conteudo { font-size: 1.1rem; line-height: 1.8; white-space: pre-wrap; /* Preserva quebras de linha e espaços */ }
+        .loading-text { text-align: center; font-size: 1.2rem; padding: 50px; }
+    </style>
+    <title>Carregando Publicação...</title>
+</head>
+<body>
+    <div class="p-gina-inicial">
+        <div class="header">
+            <div class="navbar">
+                <div class="frame-1000000809">
+                  <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" /></a>
+                </div>
+                <div class="menu">
+                  <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
+                  <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
+                  <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
+                  <div class="newsletter"><div class="login">Login</div><img class="person" src="../static/images/person0.svg" /></div>
+                </div>
+            </div>
+        </div>
+
+        <main id="main-content" class="detalhe-container">
+            <p class="loading-text">Carregando detalhes da publicação...</p>
+        </main>
+
+        <div class="footer">
+            <div class="container5">
+                <div class="_2025">© 2025</div>
+                <div class="menu">
+                    <div class="twitter">Twitter</div>
+                    <div class="linked-in">LinkedIn</div>
+                    <div class="email">Email</div>
+                    <div class="instagram">Instagram</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mainContent = document.getElementById('main-content');
+
+        /**
+         * Função para pegar o ID da publicação da URL
+         */
+        function getIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return '';
+            const data = new Date(dataIso);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return data.toLocaleDateString('pt-BR', options);
+        }
+
+        /**
+         * Função principal que busca e renderiza os detalhes da publicação
+         */
+        async function carregarDetalhes() {
+            const publicacaoId = getIdFromUrl();
+
+            if (!publicacaoId) {
+                mainContent.innerHTML = '<p class="loading-text">Erro: ID da publicação não encontrado na URL.</p>';
+                return;
+            }
+
+            const apiUrl = `http://127.0.0.1:8000/postagens/exibir/${publicacaoId}`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (response.status === 404) {
+                    throw new Error('Publicação não encontrada.');
+                }
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.statusText}`);
+                }
+
+                const publicacao = await response.json();
+                
+                // Limpa a mensagem de "carregando"
+                mainContent.innerHTML = '';
+
+                // Atualiza o título da página
+                document.title = publicacao.titulo;
+
+                // Cria e adiciona os elementos dinamicamente
+                const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder-large.png';
+                
+                const headerHtml = `
+                    <h1 class="detalhe-titulo">${publicacao.titulo}</h1>
+                    <p class="detalhe-meta">
+                        Publicado por <strong>${publicacao.professor.nome}</strong> em ${formatarData(publicacao.data_publicacao)} <br>
+                        Projeto: <a href="detalhes_projeto.html?id=${publicacao.projeto.id}">${publicacao.projeto.titulo}</a>
+                    </p>
+                    <img src="${imagemSrc}" alt="Imagem principal da publicação" class="detalhe-imagem-principal">
+                    <div class="detalhe-conteudo">${publicacao.conteudo}</div>
+                `;
+
+                mainContent.innerHTML = headerHtml;
+
+            } catch (error) {
+                console.error("Falha ao carregar detalhes da publicação:", error);
+                mainContent.innerHTML = `<p class="loading-text">Erro: ${error.message}</p>`;
+            }
+        }
+
+        // Inicia o processo
+        carregarDetalhes();
+    });
+  </script>
+</body>
+</html>

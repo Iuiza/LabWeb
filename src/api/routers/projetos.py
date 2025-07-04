@@ -139,7 +139,7 @@ async def listar_projetos(
 ):
     """
     Lista todos os projetos de extensão cadastrados na plataforma.
-    Esta rota é pública e não requer autenticação. [cite: 70]
+    Esta rota é pública e não requer autenticação.
     """
     # Cria a consulta para buscar todos os projetos
     query = (
@@ -180,7 +180,8 @@ async def get_detalhes_projeto(
         .where(Projeto.id == projeto_id)
         .options(
             selectinload(Projeto.curso),
-            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            selectinload(Projeto.publicacoes)
         )
     )
     projeto = (await session.execute(query)).scalar_one_or_none()

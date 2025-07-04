@@ -1,90 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../static/styles/vars.css">
   <link rel="stylesheet" href="../static/styles/style.css">
-  
-  
   <style>
-   a,
-   button,
-   input,
-   select,
-   h1,
-   h2,
-   h3,
-   h4,
-   h5,
-   * {
-       box-sizing: border-box;
-       margin: 0;
-       padding: 0;
-       border: none;
-       text-decoration: none;
-       background: none;
-   
-       -webkit-font-smoothing: antialiased;
-   }
-   
-   menu, ol, ul {
-       list-style-type: none;
-       margin: 0;
-       padding: 0;
-   }
-   </style>
-  <title>Document</title>
+    /* Seu CSS reset está aqui para garantir que a página funcione isoladamente */
+    a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+    /* Estilo para o link do card */
+    a.card-link { color: inherit; text-decoration: none; display: block; }
+  .modal {
+        display: none; /* Escondido por padrão */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.6);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 30px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 10px;
+        position: relative;
+    }
+    .close-button {
+        color: #aaa;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    #loginForm input {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    #loginForm button {
+        background-color: #0056b3;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+    }
+    #loginForm button:hover {
+        background-color: #004494;
+    }
+    #login-error {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+        display: none; /* Escondido por padrão */
+    }
+  </style>
+  <title>UNEB em Foco - Publicações</title>
 </head>
 <body>
   <div class="p-gina-inicial">
     <div class="header">
       <div class="navbar">
-      <div class="frame-1000000809">
-        <a href="index.html">
-          <img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" />
-        </a>
-      </div>
+        <div class="frame-1000000809">
+          <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" /></a>
+        </div>
         <div class="menu">
           <div class="search-bar">
             <div class="state-layer">
               <div class="leading-icon">
-                <div class="container">
-                  <div class="state-layer2">
-                    <img class="icon" src="../static/images/icon0.svg" />
-                  </div>
-                </div>
+                <div class="container"><div class="state-layer2"><img class="icon" src="../static/images/icon0.svg" /></div></div>
               </div>
-              <div class="content">
-                <div class="supporting-text">Buscar</div>
-              </div>
+              <div class="content"><div class="supporting-text">Buscar</div></div>
               <div class="trailing-elements">
-                <div class="_1st-trailing-icon">
-                  <div class="container">
-                    <div class="state-layer2">
-                      <img class="icon2" src="../static/images/icon1.svg" />
-                    </div>
-                  </div>
-                </div>
+                <div class="_1st-trailing-icon"><div class="container"><div class="state-layer2"><img class="icon2" src="../static/images/icon1.svg" /></div></div></div>
               </div>
             </div>
           </div>
-          <div class="blog">
-            <a href="noticias.html" class="not-cias">Notícias</a>
-          </div>
-          <div class="projects">
-            <a href="eventos.html" class="eventos">Eventos</a>
-          </div>
-          <div class="about">
-            <a href="projetos.html" class="projetos">Projetos</a>
-          </div>
-          <div class="newsletter dropdown">
+          <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
+          <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
+          <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
+          <div id="login-container" class="newsletter dropdown">
             <div class="login">Login</div>
             <img class="person" src="../static/images/person0.svg" />
-            <div class="dropdown-content">
-              <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-            </div>
+            <div id="dropdown-content" class="dropdown-content">
+          </div>
           </div>
         </div>
       </div>
@@ -93,398 +111,48 @@
         <img class="bras-o-da-uneb-12" src="../static/images/bras-o-da-uneb-11.png" />
       </div>
     </div>
+
+    <div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span id="closeModal" class="close-button">&times;</span>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Entrar</button>
+            <p id="login-error"></p>
+        </form>
+    </div>
+</div>
+
     <div class="blog2">
       <div class="section">
         <div class="container3">
           <div class="heading">Publicações recentes</div>
-          <div class="content2">
-            <div class="blog-post-card">
-              <img class="image" src="../static/images/image0.png" />
-              <div class="content3">
-                <div class="heading-and-text">
-                  <div class="author">Luiza Limoeiro • 1 Jan 2025</div>
-                  <div class="heading-and-icon">
-                    <div class="heading2">UNEB realiza encontro de formação</div>
-                    <div class="icon-wrap">
-                      <img class="arrow-up-right" src="../static/images/arrow-up-right0.svg" />
-                    </div>
-                  </div>
-                  <div class="supporting-text2">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </div>
-                </div>
-                <div class="categories">
-                  <div class="badge">
-                    <div class="badge-base">
-                      <div class="text">Elas nas Exatas</div>
-                    </div>
-                  </div>
-                  <div class="badge">
-                    <div class="badge-base2">
-                      <div class="text2">Evento</div>
-                    </div>
-                  </div>
-                  <div class="badge"></div>
-                </div>
-              </div>
-            </div>
-            <div class="column">
-              <div class="blog-post-card2">
-                <img class="image2" src="../static/images/image1.png" />
-                <div class="content4">
-                  <div class="heading-and-text">
-                    <div class="author">Caio Melo • 1 Jan 2025</div>
-                    <div class="heading-and-text2">
-                      <div class="heading3">Lorem ipsum dolor sit amet</div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Sed do eiusmod tempor incididunt ut labore et dolore magna
-                        aliqua.
-                      </div>
-                    </div>
-                  </div>
-                  <div class="categories">
-                    <div class="badge">
-                      <div class="badge-base3">
-                        <div class="text3">ACSO</div>
-                      </div>
-                    </div>
-                    <div class="badge">
-                      <div class="badge-base4">
-                        <div class="text4">Notícia</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="blog-post-card2">
-                <img class="image2" src="../static/images/image2.png" />
-                <div class="content4">
-                  <div class="heading-and-text">
-                    <div class="author">Luiz Vinícius • 1 Jan 2025</div>
-                    <div class="heading-and-text2">
-                      <div class="heading3">Lorem ipsum dolor sit amet</div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Sed do eiusmod tempor incididunt ut labore et dolore magna
-                        aliqua.
-                      </div>
-                    </div>
-                  </div>
-                  <div class="categories">
-                    <div class="badge">
-                      <div class="badge-base5">
-                        <div class="text5">G2BC</div>
-                      </div>
-                    </div>
-                    <div class="badge">
-                      <div class="badge-base4">
-                        <div class="text4">Evento</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="container3">
-          <div class="content2">
-            <div class="blog-post-card3">
-              <img class="image3" src="../static/images/image3.png" />
-              <div class="content4">
-                <div class="heading-and-text">
-                  <div class="author">Lorem ipsum • 1 Jan 2023</div>
-                  <div class="heading-and-icon">
-                    <div class="heading2">Lorem ipsum dolor sit amet</div>
-                    <div class="icon-wrap">
-                      <img class="arrow-up-right2" src="../static/images/arrow-up-right1.svg" />
-                    </div>
-                  </div>
-                  <div class="supporting-text2">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                    laboris nisi ut aliquip ex ea commodo consequat.
-                  </div>
-                </div>
-                <div class="categories">
-                  <div class="badge">
-                    <div class="badge-base">
-                      <div class="text">Projeto</div>
-                    </div>
-                  </div>
-                  <div class="badge">
-                    <div class="badge-base4">
-                      <div class="text4">Tipo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="container4">
-          <div class="heading-and-content">
-            <div class="heading">Todas as publicações</div>
-            <div class="content5">
-              <div class="row">
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image4.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Alec Whitten • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right3"
-                            src="../static/images/arrow-up-right2.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base6">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image5.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Demi WIlkinson • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right4"
-                            src="../static/images/arrow-up-right3.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base3">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base2">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image6.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Candice Wu • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right5"
-                            src="../static/images/arrow-up-right4.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base2">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image7.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Natali Craig • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right6"
-                            src="../static/images/arrow-up-right5.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base2">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image8.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Drew Cano • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right7"
-                            src="../static/images/arrow-up-right6.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base5">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base4">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="blog-post-card4">
-                  <img class="image4" src="../static/images/image9.png" />
-                  <div class="content3">
-                    <div class="heading-and-text">
-                      <div class="author">Orlando Diggs • 1 Jan 2023</div>
-                      <div class="heading-and-icon">
-                        <div class="heading2">Lorem ipsum dolor sit</div>
-                        <div class="icon-wrap">
-                          <img
-                            class="arrow-up-right8"
-                            src="../static/images/arrow-up-right7.svg"
-                          />
-                        </div>
-                      </div>
-                      <div class="supporting-text2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      </div>
-                    </div>
-                    <div class="categories">
-                      <div class="badge">
-                        <div class="badge-base">
-                          <div class="text">Projeto</div>
-                        </div>
-                      </div>
-                      <div class="badge">
-                        <div class="badge-base6">
-                          <div class="text6">Tipo</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="pagination">
-            <div class="button">
-              <div class="button-base">
-                <img class="arrow-left" src="../static/images/arrow-left0.svg" />
-                <div class="text7">Anterior</div>
-              </div>
-            </div>
-            <div class="pagination-numbers">
-              <div class="pagination-number-base">
-                <div class="content6">
-                  <div class="number">1</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">2</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">3</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">...</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">8</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">9</div>
-                </div>
-              </div>
-              <div class="pagination-number-base2">
-                <div class="content6">
-                  <div class="number2">10</div>
-                </div>
-              </div>
-            </div>
-            <div class="button">
-              <div class="button-base">
-                <div class="text7">Próxima</div>
-                <img class="arrow-right" src="../static/images/arrow-right0.svg" />
-              </div>
-            </div>
+          <div id="recentes-container" class="content2">
+            <p>Carregando publicações recentes...</p>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="section">
+      <div class="container4">
+        <div class="heading-and-content">
+          <div class="heading">Todas as publicações</div>
+           <div id="todas-publicacoes-container" class="content5">
+             <p>Carregando todas as publicações...</p>
+          </div>
+        </div>
+        <div class="pagination">
+          </div>
+      </div>
+    </div>
+
     <div class="footer">
       <div class="container5">
         <div class="_2025">© 2025</div>
@@ -497,6 +165,204 @@
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- LÓGICA DE LOGIN ---
+        const loginContainer = document.getElementById('login-container');
+        const loginModal = document.getElementById('loginModal');
+        const closeModal = document.getElementById('closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('login-error');
+        const dropdownContent = document.getElementById('dropdown-content');
+
+
+        // Abre o modal de login se o usuário não estiver logado
+        loginContainer.addEventListener('click', (e) => {
+            if (!localStorage.getItem('accessToken')) {
+                loginModal.style.display = 'block';
+            }
+        });
+
+        closeModal.addEventListener('click', () => { loginModal.style.display = 'none'; });
+        window.addEventListener('click', (event) => {
+            if (event.target == loginModal) {
+                loginModal.style.display = 'none';
+            }
+        });
+
+        // Lógica de submissão do formulário
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginError.style.display = 'none';
+
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            const formData = new URLSearchParams({ username: email, password: password });
+
+            try {
+                // ETAPA 1: Fazer login para obter o token
+                const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData,
+                });
+
+                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+                const tokenData = await loginResponse.json();
+                const accessToken = tokenData.access_token;
+                localStorage.setItem('accessToken', accessToken);
+
+                // ETAPA 2: Usar o token para buscar os dados do usuário
+                const userResponse = await fetch('http://127.0.0.1:8000/professores/me', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
+                const userData = await userResponse.json();
+                
+                // Armazena os dados do usuário como uma string JSON
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                alert('Login realizado com sucesso!');
+                loginModal.style.display = 'none';
+                atualizarUIComLogin();
+
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.style.display = 'block';
+            }
+        });
+        
+        // Função para atualizar a UI com base no estado de login
+        function atualizarUIComLogin() {
+            const token = localStorage.getItem('accessToken');
+            const userDataString = localStorage.getItem('currentUser');
+            const loginDiv = loginContainer.querySelector('.login');
+
+            if (token && userDataString) {
+                const user = JSON.parse(userDataString);
+                // ATUALIZAÇÃO: Usa o nome do usuário
+                loginDiv.textContent = user.nome; 
+                
+                dropdownContent.innerHTML = `
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="#" id="logoutBtn">Sair</a>
+                `;
+                document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Limpa tudo relacionado ao usuário
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('currentUser');
+                    alert('Você saiu da sua conta.');
+                    atualizarUIComLogin();
+                });
+            } else {
+                loginDiv.textContent = 'Login';
+                dropdownContent.innerHTML = ''; // Limpa o dropdown
+            }
+        }
+        atualizarUIComLogin();
+    });
   
+    document.addEventListener('DOMContentLoaded', () => {
+        const apiUrl = 'http://127.0.0.1:8000/postagens/listar';
+        const recentesContainer = document.getElementById('recentes-container');
+        const todasPublicacoesContainer = document.getElementById('todas-publicacoes-container');
+
+        function formatarData(dataIso) {
+            if (!dataIso) return '';
+            const data = new Date(dataIso);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return data.toLocaleDateString('pt-BR', options);
+        }
+
+        function criarCardPublicacao(publicacao) {
+            const linkWrapper = document.createElement('a');
+            linkWrapper.href = `detalhes.html?id=${publicacao.id}`;
+            linkWrapper.className = 'card-link';
+
+            const card = document.createElement('div');
+            // Usamos a classe mais genérica para manter o layout
+            card.className = 'blog-post-card4'; 
+
+            const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder.png';
+            const conteudoTruncado = publicacao.conteudo.length > 150 
+                ? publicacao.conteudo.substring(0, 150) + '...' 
+                : publicacao.conteudo;
+
+            card.innerHTML = `
+                <img class="image4" src="${imagemSrc}" alt="Imagem da publicação: ${publicacao.titulo}" />
+                <div class="content3">
+                    <div class="heading-and-text">
+                        <div class="author">${publicacao.professor.nome} • ${formatarData(publicacao.data_publicacao)}</div>
+                        <div class="heading-and-icon">
+                            <div class="heading2">${publicacao.titulo}</div>
+                            <div class="icon-wrap">
+                                <img class="arrow-up-right3" src="../static/images/arrow-up-right2.svg" />
+                            </div>
+                        </div>
+                        <div class="supporting-text2">${conteudoTruncado}</div>
+                    </div>
+                    <div class="categories">
+                        <div class="badge">
+                            <div class="badge-base">
+                                <div class="text">${publicacao.projeto.titulo}</div>
+                            </div>
+                        </div>
+                        <div class="badge">
+                            <div class="badge-base2">
+                                <div class="text6">${publicacao.tipo}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            linkWrapper.appendChild(card);
+            return linkWrapper;
+        }
+
+        async function carregarPublicacoes() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const publicacoes = await response.json();
+
+                // Limpa os containers antes de adicionar o conteúdo dinâmico
+                recentesContainer.innerHTML = '';
+                todasPublicacoesContainer.innerHTML = '';
+
+                if (publicacoes.length === 0) {
+                    recentesContainer.innerHTML = '<p>Nenhuma publicação recente encontrada.</p>';
+                    return;
+                }
+
+                // Publicações recentes (as 3 primeiras)
+                publicacoes.slice(0, 3).forEach(pub => {
+                    recentesContainer.appendChild(criarCardPublicacao(pub));
+                });
+                
+                // Todas as publicações
+                let currentRow;
+                publicacoes.forEach((pub, index) => {
+                    if (index % 3 === 0) {
+                        currentRow = document.createElement('div');
+                        currentRow.className = 'row';
+                        todasPublicacoesContainer.appendChild(currentRow);
+                    }
+                    currentRow.appendChild(criarCardPublicacao(pub));
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar publicações:", error);
+                recentesContainer.innerHTML = '<p>Não foi possível carregar as publicações.</p>';
+                todasPublicacoesContainer.innerHTML = '';
+            }
+        }
+
+        carregarPublicacoes();
+    });
+  </script>
 </body>
 </html>

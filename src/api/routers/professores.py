@@ -99,3 +99,20 @@ async def atualizar_foto_perfil(
     await session.refresh(current_user)
 
     return current_user
+
+@router.get(
+    "/me",
+    response_model=schemas.ProfessorResponse,
+    summary="Obter dados do professor atualmente autenticado"
+)
+async def read_current_professor(
+    current_user: Professor = Depends(get_current_active_user)
+):
+    """
+    Retorna os dados do professor que está logado,
+    com base no token de autenticação fornecido.
+    """
+    # A dependência get_current_active_user já faz todo o trabalho de
+    # buscar o usuário no banco. Só precisamos retorná-lo.
+    # O response_model garantirá que a senha não seja enviada.
+    return current_user

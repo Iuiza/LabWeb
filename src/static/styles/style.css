@@ -961,6 +961,7 @@
   font-weight: 400;
   position: relative;
 }
+
 .dropdown {
   position: relative;
   display: flex;
@@ -968,7 +969,7 @@
 
 .dropdown-content {
   display: none;
-  position: relative;
+  position: absolute;
   right: 0;
   background-color: white;
   min-width: 160px;
