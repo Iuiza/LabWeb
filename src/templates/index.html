@@ -73,6 +73,74 @@
         margin-top: 10px;
         display: none; /* Escondido por padrão */
     }
+
+    /* ESTILOS PARA AS PUBLICAÇÕES RECENTES (NOVO LAYOUT) */
+    #recentes-container {
+        display: flex;
+        flex-wrap: wrap; /* Permite que os cards se ajustem e quebrem */
+        gap: 32px; /* Espaçamento entre o card grande e a coluna lateral */
+        align-items: flex-start; /* Alinha os itens ao topo */
+        /* Removendo padding-top daqui se o .section já tem padding */
+    }
+
+    #recentes-container .blog-post-card-featured {
+        flex: 2; /* Ocupa mais espaço */
+        min-width: 60%; /* Pelo menos 60% da largura do pai */
+        max-width: 65%; /* Limita a largura para permitir espaço para os outros */
+        display: flex; /* Transforma o card em flex para organizar imagem e texto */
+        flex-direction: column; /* Conteúdo em coluna */
+        gap: 16px; /* Espaço interno no card */
+        border: 1px solid #eaeaea; /* Exemplo de borda */
+        border-radius: 8px;
+        overflow: hidden; /* Garante que a imagem não vaze */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra para destacar */
+    }
+
+    #recentes-container .blog-post-card-featured .image4 {
+        width: 100%;
+        height: 280px; /* Altura fixa para a imagem destacada - AUMENTADO UM POUCO */
+        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+    }
+
+    #recentes-container .blog-post-card-featured .content3 {
+        padding: 24px; /* Espaçamento interno para o texto do card destacado */
+    }
+
+    #recentes-container .blog-post-card-sidebar {
+        flex: 1; /* Ocupa o espaço restante */
+        min-width: 300px; /* Largura mínima para os cards da sidebar */
+        max-width: 35%; /* Largura máxima para os cards da sidebar */
+        display: flex;
+        flex-direction: column;
+        gap: 16px; /* Espaço entre os cards da sidebar */
+    }
+
+    #recentes-container .blog-post-card-sidebar .blog-post-card4 {
+        /* Reset flex para cards menores dentro da sidebar */
+        flex: 1 1 100%; /* Cada card ocupa 100% da largura da sidebar */
+        margin-bottom: 0; /* Remove margem extra se houver */
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra mais leve */
+    }
+
+    #recentes-container .blog-post-card-sidebar .blog-post-card4 .image4 {
+        width: 100%;
+        height: 150px; /* Altura menor para as imagens dos cards laterais */
+        object-fit: cover;
+    }
+    
+    #recentes-container .blog-post-card-sidebar .blog-post-card4 .content3 {
+        padding: 16px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    #recentes-container .blog-post-card-sidebar .blog-post-card4 .categories {
+        margin-top: auto;
+    }
   </style>
   <title>UNEB em Foco - Publicações</title>
 </head>
@@ -338,10 +406,25 @@
                     return;
                 }
 
-                // Publicações recentes (as 3 primeiras)
-                publicacoes.slice(0, 3).forEach(pub => {
-                    recentesContainer.appendChild(criarCardPublicacao(pub));
-                });
+                // --- Publicações recentes (layout específico) ---
+                if (publicacoes.length > 0) {
+                    // Card principal grande
+                    const featuredCardWrapper = document.createElement('div');
+                    featuredCardWrapper.className = 'blog-post-card-featured';
+                    const featuredCard = criarCardPublicacao(publicacoes[0], true);
+                    featuredCardWrapper.appendChild(featuredCard);
+                    recentesContainer.appendChild(featuredCardWrapper);
+
+                    // Dois cards menores na sidebar, se existirem
+                    if (publicacoes.length > 1) {
+                        const sidebarCardsContainer = document.createElement('div');
+                        sidebarCardsContainer.className = 'blog-post-card-sidebar';
+                        publicacoes.slice(1, 3).forEach(pub => {
+                            sidebarCardsContainer.appendChild(criarCardPublicacao(pub));
+                        });
+                        recentesContainer.appendChild(sidebarCardsContainer);
+                    }
+                }
                 
                 // Todas as publicações
                 let currentRow;
