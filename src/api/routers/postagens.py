@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from typing import List, Optional, Union
+from typing import Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import selectinload
 
 from .. import schemas
@@ -12,15 +12,60 @@ from models.db import Publicacao, Projeto, Professor, Administrador
 router = APIRouter()
 
 # ROTA 1: LISTAR TODAS AS PUBLICAÇÕES (PÚBLICA)
-@router.get("/listar", response_model=List[schemas.PublicacaoResponse])
-async def listar_publicacoes(session: AsyncSession = Depends(get_db_session)):
+@router.get(
+    "/listar",
+    response_model=schemas.PaginatedPublicacaoResponse,
+    summary="Listar, buscar e filtrar publicações"
+)
+async def listar_publicacoes(
+    session: AsyncSession = Depends(get_db_session),
+    skip: int = 0,
+    limit: int = 6,
+    search: Optional[str] = None, # Parâmetro para busca por palavra-chave
+    tipo: Optional[PublicacaoTipoEnum] = None, # Parâmetro para filtro por tipo
+    projeto_id: Optional[int] = None, # Parâmetro para filtro por projeto
+    curso_id: Optional[int] = None # Parâmetro para filtro por curso
+):
+    # Consulta base
     query = (
         select(Publicacao)
+        .join(Publicacao.projeto) # Join para permitir filtro por curso
         .order_by(Publicacao.data_publicacao.desc())
+    )
+
+    # Aplica os filtros dinamicamente se eles forem fornecidos
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Publicacao.titulo.ilike(search_term),
+                Publicacao.conteudo.ilike(search_term)
+            )
+        )
+    if tipo:
+        query = query.filter(Publicacao.tipo == tipo)
+    if projeto_id:
+        query = query.filter(Publicacao.projeto_id == projeto_id)
+    if curso_id:
+        query = query.filter(Projeto.curso_id == curso_id)
+
+    # Primeiro, contamos o total de itens com os filtros aplicados
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await session.execute(count_query)
+    total = total_result.scalar_one()
+
+    # Depois, aplicamos a paginação para a consulta final
+    paginated_query = (
+        query
+        .offset(skip)
+        .limit(limit)
         .options(selectinload(Publicacao.professor), selectinload(Publicacao.projeto))
     )
-    result = await session.execute(query)
-    return result.scalars().all()
+    
+    result = await session.execute(paginated_query)
+    publicacoes = result.scalars().unique().all()
+    
+    return {"total": total, "publicacoes": publicacoes}
 
 # ROTA 2: EXIBIR UMA PUBLICAÇÃO ESPECÍFICA (PÚBLICA)
 @router.get("/exibir/{publicacao_id}", response_model=schemas.PublicacaoResponse)

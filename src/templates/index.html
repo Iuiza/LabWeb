@@ -1,242 +1,201 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../static/styles/vars.css">
-  <link rel="stylesheet" href="../static/styles/style.css">
-  <style>
-    /* Seu CSS reset está aqui para garantir que a página funcione isoladamente */
-    a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
-    /* Estilo para o link do card */
-    a.card-link { color: inherit; text-decoration: none; display: block; }
-  .modal {
-        display: none; /* Escondido por padrão */
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.6);
-    }
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 30px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 400px;
-        border-radius: 10px;
-        position: relative;
-    }
-    .close-button {
-        color: #aaa;
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 28px;
-        font-weight: bold;
-    }
-    .close-button:hover,
-    .close-button:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    #loginForm input {
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    #loginForm button {
-        background-color: #0056b3;
-        color: white;
-        padding: 14px 20px;
-        margin: 8px 0;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        width: 100%;
-        font-size: 16px;
-    }
-    #loginForm button:hover {
-        background-color: #004494;
-    }
-    #login-error {
-        color: red;
-        text-align: center;
-        margin-top: 10px;
-        display: none; /* Escondido por padrão */
-    }
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/vars.css">
+    <link rel="stylesheet" href="../static/styles/style.css">
+    <title>UNEB em Foco</title>
+    <style>
+        /* CSS Reset */
+        a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+        
+        /* Estilo para o link do card */
+        a.card-link { color: inherit; text-decoration: none; display: block; height: 100%; }
 
-    /* ESTILOS PARA AS PUBLICAÇÕES RECENTES (NOVO LAYOUT) */
-    #recentes-container {
-        display: flex;
-        flex-wrap: wrap; /* Permite que os cards se ajustem e quebrem */
-        gap: 32px; /* Espaçamento entre o card grande e a coluna lateral */
-        align-items: flex-start; /* Alinha os itens ao topo */
-        /* Removendo padding-top daqui se o .section já tem padding */
-    }
+        /* Estilos para o Modal de Login */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loginForm button:hover { background-color: #004494; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+        
+        /* Estilos para o Dropdown do Usuário */
+        .dropdown { position: relative; }
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
 
-    #recentes-container .blog-post-card-featured {
-        flex: 2; /* Ocupa mais espaço */
-        min-width: 60%; /* Pelo menos 60% da largura do pai */
-        max-width: 65%; /* Limita a largura para permitir espaço para os outros */
-        display: flex; /* Transforma o card em flex para organizar imagem e texto */
-        flex-direction: column; /* Conteúdo em coluna */
-        gap: 16px; /* Espaço interno no card */
-        border: 1px solid #eaeaea; /* Exemplo de borda */
-        border-radius: 8px;
-        overflow: hidden; /* Garante que a imagem não vaze */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra para destacar */
-    }
+        /* Estilos para a Paginação */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px; padding-bottom: 24px;}
+        .pagination button { cursor: pointer; padding: 8px 14px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-size: 1rem; }
+        .pagination button:disabled { cursor: not-allowed; background-color: #f0f0f0; color: #aaa; }
+        .pagination button.active { background-color: #0056b3; color: white; border-color: #0056b3; font-weight: bold; }
+        .pagination .button-base { display: flex; align-items: center; gap: 8px; }
+        
+        /* Estilos para Publicações Recentes (Layout Especial) */
+        #recentes-container { display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch; }
+        .blog-post-card-featured { flex: 2; min-width: 60%; max-width: 65%; display: flex; }
+        .blog-post-card-sidebar { flex: 1; min-width: 300px; max-width: 35%; display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Estilos para Unificar Altura dos Cards e Efeito Hover */
+        .custom-card { 
+            border: 1px solid #eaeaea; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            background-color: white; 
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .custom-card .content-container { 
+            padding: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-grow: 1;
+        }
+        .custom-card .categories { 
+            margin-top: auto;
+            padding-top: 16px; 
+        }
 
-    #recentes-container .blog-post-card-featured .image4 {
-        width: 100%;
-        height: 280px; /* Altura fixa para a imagem destacada - AUMENTADO UM POUCO */
-        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
-    }
+        .custom-card .image-container img { width: 100%; object-fit: cover; }
+        .blog-post-card-featured .custom-card .image-container img { height: 320px; }
+        .blog-post-card-sidebar .custom-card .image-container img { height: 180px; }
+        #todas-publicacoes-container .custom-card .image-container img { height: 240px; }
+        
+        /* Alinhamento para a grid de "Todas as publicações" */
+        #todas-publicacoes-container .row { display: flex; gap: 16px; align-items: stretch; margin-bottom: 16px; }
+        #todas-publicacoes-container .blog-post-card4 { flex: 1; }
 
-    #recentes-container .blog-post-card-featured .content3 {
-        padding: 24px; /* Espaçamento interno para o texto do card destacado */
-    }
+        /* Estilos para a nova Barra de Pesquisa e Filtros */
+        .search-and-filter-container { margin-bottom: 24px; }
+        #search-form { display: flex; margin-bottom: 16px; }
+        #search-form input { 
+            flex-grow: 1; 
+            padding: 12px; 
+            font-size: 1rem; 
+            border: 1px solid #ccc; 
+            border-right: none;
+            border-radius: 8px 0 0 8px; 
+        }
+        #search-form button { 
+            padding: 0 16px; 
+            border: 1px solid #ccc;
+            background-color: #f8f9fa; 
+            border-radius: 0 8px 8px 0; 
+            cursor: pointer; 
+        }
+        .filtros-container { display: flex; gap: 16px; flex-wrap: wrap; }
+        .filtros-container select { padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; flex-grow: 1; }
 
-    #recentes-container .blog-post-card-sidebar {
-        flex: 1; /* Ocupa o espaço restante */
-        min-width: 300px; /* Largura mínima para os cards da sidebar */
-        max-width: 35%; /* Largura máxima para os cards da sidebar */
-        display: flex;
-        flex-direction: column;
-        gap: 16px; /* Espaço entre os cards da sidebar */
-    }
-
-    #recentes-container .blog-post-card-sidebar .blog-post-card4 {
-        /* Reset flex para cards menores dentro da sidebar */
-        flex: 1 1 100%; /* Cada card ocupa 100% da largura da sidebar */
-        margin-bottom: 0; /* Remove margem extra se houver */
-        border: 1px solid #eaeaea;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra mais leve */
-    }
-
-    #recentes-container .blog-post-card-sidebar .blog-post-card4 .image4 {
-        width: 100%;
-        height: 150px; /* Altura menor para as imagens dos cards laterais */
-        object-fit: cover;
-    }
-    
-    #recentes-container .blog-post-card-sidebar .blog-post-card4 .content3 {
-        padding: 16px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    #recentes-container .blog-post-card-sidebar .blog-post-card4 .categories {
-        margin-top: auto;
-    }
-  </style>
-  <title>UNEB em Foco - Publicações</title>
+    </style>
 </head>
 <body>
-  <div class="p-gina-inicial">
-    <div class="header">
-      <div class="navbar">
-        <div class="frame-1000000809">
-          <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" /></a>
-        </div>
-        <div class="menu">
-          <div class="search-bar">
-            <div class="state-layer">
-              <div class="leading-icon">
-                <div class="container"><div class="state-layer2"><img class="icon" src="../static/images/icon0.svg" /></div></div>
-              </div>
-              <div class="content"><div class="supporting-text">Buscar</div></div>
-              <div class="trailing-elements">
-                <div class="_1st-trailing-icon"><div class="container"><div class="state-layer2"><img class="icon2" src="../static/images/icon1.svg" /></div></div></div>
-              </div>
+    <div class="p-gina-inicial">
+        <div class="header">
+            <div class="navbar">
+                <div class="frame-1000000809">
+                    <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                </div>
+                <div class="menu">
+                    <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
+                    <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
+                    <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
+                    <div id="login-container" class="newsletter dropdown">
+                        <div class="login">Login</div>
+                        <img class="person" src="../static/images/person0.svg" />
+                        <div id="dropdown-content" class="dropdown-content"></div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
-          <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
-          <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
-          <div id="login-container" class="newsletter dropdown">
-            <div class="login">Login</div>
-            <img class="person" src="../static/images/person0.svg" />
-            <div id="dropdown-content" class="dropdown-content">
-          </div>
-          </div>
+            <div class="container2">
+                <div class="uneb-em-foco">UNEB EM FOCO</div>
+                <img class="bras-o-da-uneb-12" src="../static/images/bras-o-da-uneb-11.png" />
+            </div>
         </div>
-      </div>
-      <div class="container2">
-        <div class="uneb-em-foco">UNEB EM FOCO</div>
-        <img class="bras-o-da-uneb-12" src="../static/images/bras-o-da-uneb-11.png" />
-      </div>
-    </div>
 
-    <div id="loginModal" class="modal">
-    <div class="modal-content">
-        <span id="closeModal" class="close-button">&times;</span>
-        <h2>Login</h2>
-        <form id="loginForm">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
-            
-            <label for="password">Senha</label>
-            <input type="password" id="password" name="password" required>
-            
-            <button type="submit">Entrar</button>
-            <p id="login-error"></p>
-        </form>
-    </div>
-</div>
-
-    <div class="blog2">
-      <div class="section">
-        <div class="container3">
-          <div class="heading">Publicações recentes</div>
-          <div id="recentes-container" class="content2">
-            <p>Carregando publicações recentes...</p>
-          </div>
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" class="close-button">&times;</span>
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Entrar</button>
+                    <p id="login-error"></p>
+                </form>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div class="section">
-      <div class="container4">
-        <div class="heading-and-content">
-          <div class="heading">Todas as publicações</div>
-           <div id="todas-publicacoes-container" class="content5">
-             <p>Carregando todas as publicações...</p>
-          </div>
+        <div class="blog2">
+            <div class="section">
+                <div class="container3">
+                    <div class="heading">Publicações recentes</div>
+                    <div id="recentes-container" class="content2"><p>Carregando...</p></div>
+                </div>
+            </div>
         </div>
-        <div class="pagination">
-          </div>
-      </div>
-    </div>
 
-    <div class="footer">
-      <div class="container5">
-        <div class="_2025">© 2025</div>
-        <div class="menu">
-          <div class="twitter">Twitter</div>
-          <div class="linked-in">LinkedIn</div>
-          <div class="email">Email</div>
-          <div class="instagram">Instagram</div>
+        <div class="section">
+            <div class="container4">
+                <div class="heading-and-content">
+                    <div class="heading">Todas as publicações</div>
+                    
+                    <div class="search-and-filter-container">
+                        <form id="search-form">
+                            <input type="search" id="search-input" placeholder="Buscar por palavra-chave...">
+                            <button type="submit">
+                                <img class="icon2" src="../static/images/icon1.svg" />
+                            </button>
+                        </form>
+                        <div class="filtros-container">
+                            <select id="filtro-tipo">
+                                <option value="">Todos os Tipos</option>
+                                <option value="NOTICIA">Notícia</option>
+                                <option value="EVENTO">Evento</option>
+                            </select>
+                            <select id="filtro-projeto">
+                                <option value="">Todos os Projetos</option>
+                            </select>
+                            <select id="filtro-curso">
+                                <option value="">Todos os Cursos</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="todas-publicacoes-container" class="content5"><p>Carregando...</p></div>
+                </div>
+                <div id="pagination-container" class="pagination"></div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <script>
+        <div class="footer">
+            <div class="container5">
+                <div class="_2025">© 2025</div>
+                <div class="menu">
+                    <div class="twitter">Twitter</div><div class="linked-in">LinkedIn</div><div class="email">Email</div><div class="instagram">Instagram</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- LÓGICA DE LOGIN ---
+        // --- LÓGICA DE LOGIN E UI ---
         const loginContainer = document.getElementById('login-container');
         const loginModal = document.getElementById('loginModal');
         const closeModal = document.getElementById('closeModal');
@@ -244,8 +203,6 @@
         const loginError = document.getElementById('login-error');
         const dropdownContent = document.getElementById('dropdown-content');
 
-
-        // Abre o modal de login se o usuário não estiver logado
         loginContainer.addEventListener('click', (e) => {
             if (!localStorage.getItem('accessToken')) {
                 loginModal.style.display = 'block';
@@ -259,50 +216,39 @@
             }
         });
 
-        // Lógica de submissão do formulário
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             loginError.style.display = 'none';
-
             const email = event.target.email.value;
             const password = event.target.password.value;
             const formData = new URLSearchParams({ username: email, password: password });
 
             try {
-                // ETAPA 1: Fazer login para obter o token
                 const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData,
                 });
-
                 if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
                 const tokenData = await loginResponse.json();
-                const accessToken = tokenData.access_token;
-                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('accessToken', tokenData.access_token);
 
-                // ETAPA 2: Usar o token para buscar os dados do usuário
                 const userResponse = await fetch('http://127.0.0.1:8000/professores/me', {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                 });
-
                 if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
                 const userData = await userResponse.json();
-                
-                // Armazena os dados do usuário como uma string JSON
                 localStorage.setItem('currentUser', JSON.stringify(userData));
                 
                 alert('Login realizado com sucesso!');
                 loginModal.style.display = 'none';
                 atualizarUIComLogin();
-
             } catch (error) {
                 loginError.textContent = error.message;
                 loginError.style.display = 'block';
             }
         });
         
-        // Função para atualizar a UI com base no estado de login
         function atualizarUIComLogin() {
             const token = localStorage.getItem('accessToken');
             const userDataString = localStorage.getItem('currentUser');
@@ -310,9 +256,7 @@
 
             if (token && userDataString) {
                 const user = JSON.parse(userDataString);
-                // ATUALIZAÇÃO: Usa o nome do usuário
                 loginDiv.textContent = user.nome; 
-                
                 dropdownContent.innerHTML = `
                     <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
                     <a href="cadastrar_publicacao.html">Nova Publicação</a>
@@ -320,24 +264,30 @@
                 `;
                 document.getElementById('logoutBtn').addEventListener('click', (e) => {
                     e.preventDefault();
-                    // Limpa tudo relacionado ao usuário
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('currentUser');
                     alert('Você saiu da sua conta.');
-                    atualizarUIComLogin();
+                    window.location.reload();
                 });
             } else {
                 loginDiv.textContent = 'Login';
-                dropdownContent.innerHTML = ''; // Limpa o dropdown
+                dropdownContent.innerHTML = '';
             }
         }
-        atualizarUIComLogin();
-    });
-  
-    document.addEventListener('DOMContentLoaded', () => {
-        const apiUrl = 'http://127.0.0.1:8000/postagens/listar';
+        
+        // --- LÓGICA DE CONTEÚDO, FILTROS E PAGINAÇÃO ---
+        const apiUrlBase = 'http://127.0.0.1:8000';
         const recentesContainer = document.getElementById('recentes-container');
         const todasPublicacoesContainer = document.getElementById('todas-publicacoes-container');
+        const paginationContainer = document.getElementById('pagination-container');
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const filtroTipo = document.getElementById('filtro-tipo');
+        const filtroProjeto = document.getElementById('filtro-projeto');
+        const filtroCurso = document.getElementById('filtro-curso');
+
+        let currentPage = 1;
+        const itemsPerPage = 6;
 
         function formatarData(dataIso) {
             if (!dataIso) return '';
@@ -346,44 +296,34 @@
             return data.toLocaleDateString('pt-BR', options);
         }
 
-        function criarCardPublicacao(publicacao) {
+        function criarCardPublicacao(publicacao, isFeatured = false) {
             const linkWrapper = document.createElement('a');
             linkWrapper.href = `detalhes.html?id=${publicacao.id}`;
             linkWrapper.className = 'card-link';
 
             const card = document.createElement('div');
-            // Usamos a classe mais genérica para manter o layout
-            card.className = 'blog-post-card4'; 
+            card.className = 'custom-card';
 
             const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder.png';
-            const conteudoTruncado = publicacao.conteudo.length > 150 
-                ? publicacao.conteudo.substring(0, 150) + '...' 
+            const conteudoTruncado = publicacao.conteudo.length > (isFeatured ? 200 : 100)
+                ? publicacao.conteudo.substring(0, (isFeatured ? 200 : 100)) + '...' 
                 : publicacao.conteudo;
 
             card.innerHTML = `
-                <img class="image4" src="${imagemSrc}" alt="Imagem da publicação: ${publicacao.titulo}" />
-                <div class="content3">
+                <div class="image-container">
+                    <img src="${imagemSrc}" alt="Imagem da publicação: ${publicacao.titulo}" />
+                </div>
+                <div class="content-container">
                     <div class="heading-and-text">
                         <div class="author">${publicacao.professor.nome} • ${formatarData(publicacao.data_publicacao)}</div>
                         <div class="heading-and-icon">
                             <div class="heading2">${publicacao.titulo}</div>
-                            <div class="icon-wrap">
-                                <img class="arrow-up-right3" src="../static/images/arrow-up-right2.svg" />
-                            </div>
                         </div>
                         <div class="supporting-text2">${conteudoTruncado}</div>
                     </div>
                     <div class="categories">
-                        <div class="badge">
-                            <div class="badge-base">
-                                <div class="text">${publicacao.projeto.titulo}</div>
-                            </div>
-                        </div>
-                        <div class="badge">
-                            <div class="badge-base2">
-                                <div class="text6">${publicacao.tipo}</div>
-                            </div>
-                        </div>
+                        <div class="badge"><div class="badge-base"><div class="text">${publicacao.projeto.titulo}</div></div></div>
+                        <div class="badge"><div class="badge-base2"><div class="text6">${publicacao.tipo}</div></div></div>
                     </div>
                 </div>
             `;
@@ -391,61 +331,153 @@
             return linkWrapper;
         }
 
-        async function carregarPublicacoes() {
+        function renderizarPaginacao(totalItems, currentPage) {
+            paginationContainer.innerHTML = '';
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (totalPages <= 1) return;
+
+            const prevButton = document.createElement('button');
+            prevButton.innerHTML = `<div class="button-base"><img class="arrow-left" src="../static/images/arrow-left0.svg" /></div>`;
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => carregarTodasAsPublicacoes(currentPage - 1));
+            paginationContainer.appendChild(prevButton);
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            if (currentPage <= 3) endPage = Math.min(5, totalPages);
+            if (currentPage > totalPages - 3) startPage = Math.max(1, totalPages - 4);
+
+            if (startPage > 1) {
+                paginationContainer.appendChild(document.createTextNode('...'));
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                if (i === currentPage) pageButton.classList.add('active');
+                pageButton.addEventListener('click', () => carregarTodasAsPublicacoes(i));
+                paginationContainer.appendChild(pageButton);
+            }
+
+            if (endPage < totalPages) {
+                paginationContainer.appendChild(document.createTextNode('...'));
+            }
+            
+            const nextButton = document.createElement('button');
+            nextButton.innerHTML = `<div class="button-base"><img class="arrow-right" src="../static/images/arrow-right0.svg" /></div>`;
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => carregarTodasAsPublicacoes(currentPage + 1));
+            paginationContainer.appendChild(nextButton);
+        }
+
+        async function popularFiltros() {
             try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const publicacoes = await response.json();
+                const [projetosRes, cursosRes] = await Promise.all([
+                    fetch(`${apiUrlBase}/projetos/`),
+                    fetch(`${apiUrlBase}/cursos/`)
+                ]);
+                const projetos = await projetosRes.json();
+                const cursos = await cursosRes.json();
+                
+                projetos.forEach(p => filtroProjeto.add(new Option(p.titulo, p.id)));
+                cursos.forEach(c => filtroCurso.add(new Option(c.nome, c.id)));
+            } catch (error) {
+                console.error("Erro ao popular filtros:", error);
+            }
+        }
 
-                // Limpa os containers antes de adicionar o conteúdo dinâmico
+        async function carregarRecentes() {
+            try {
+                const response = await fetch(`${apiUrlBase}/postagens/listar?skip=0&limit=3`);
+                if (!response.ok) throw new Error('Falha ao buscar recentes');
+                const data = await response.json();
+                const publicacoes = data.publicacoes;
+                
                 recentesContainer.innerHTML = '';
-                todasPublicacoesContainer.innerHTML = '';
-
                 if (publicacoes.length === 0) {
                     recentesContainer.innerHTML = '<p>Nenhuma publicação recente encontrada.</p>';
                     return;
                 }
 
-                // --- Publicações recentes (layout específico) ---
-                if (publicacoes.length > 0) {
-                    // Card principal grande
-                    const featuredCardWrapper = document.createElement('div');
-                    featuredCardWrapper.className = 'blog-post-card-featured';
-                    const featuredCard = criarCardPublicacao(publicacoes[0], true);
-                    featuredCardWrapper.appendChild(featuredCard);
-                    recentesContainer.appendChild(featuredCardWrapper);
+                const featuredCardWrapper = document.createElement('div');
+                featuredCardWrapper.className = 'blog-post-card-featured';
+                featuredCardWrapper.appendChild(criarCardPublicacao(publicacoes[0], true));
+                recentesContainer.appendChild(featuredCardWrapper);
 
-                    // Dois cards menores na sidebar, se existirem
-                    if (publicacoes.length > 1) {
-                        const sidebarCardsContainer = document.createElement('div');
-                        sidebarCardsContainer.className = 'blog-post-card-sidebar';
-                        publicacoes.slice(1, 3).forEach(pub => {
-                            sidebarCardsContainer.appendChild(criarCardPublicacao(pub));
-                        });
-                        recentesContainer.appendChild(sidebarCardsContainer);
-                    }
+                if (publicacoes.length > 1) {
+                    const sidebarCardsContainer = document.createElement('div');
+                    sidebarCardsContainer.className = 'blog-post-card-sidebar';
+                    publicacoes.slice(1, 3).forEach(pub => {
+                        sidebarCardsContainer.appendChild(criarCardPublicacao(pub, false));
+                    });
+                    recentesContainer.appendChild(sidebarCardsContainer);
                 }
+            } catch (error) {
+                console.error("Erro ao carregar recentes:", error);
+                recentesContainer.innerHTML = '<p>Não foi possível carregar as publicações.</p>';
+            }
+        }
+        
+        async function carregarTodasAsPublicacoes(page = 1) {
+            currentPage = page;
+            const skip = (page - 1) * itemsPerPage;
+            const params = new URLSearchParams({ skip, limit: itemsPerPage });
+
+            if (searchInput.value) params.append('search', searchInput.value);
+            if (filtroTipo.value) params.append('tipo', filtroTipo.value);
+            if (filtroProjeto.value) params.append('projeto_id', filtroProjeto.value);
+            if (filtroCurso.value) params.append('curso_id', filtroCurso.value);
+
+            const apiUrl = `${apiUrlBase}/postagens/listar?${params.toString()}`;
+
+            todasPublicacoesContainer.innerHTML = '<p>Carregando...</p>';
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
                 
-                // Todas as publicações
+                todasPublicacoesContainer.innerHTML = '';
+                if (data.publicacoes.length === 0) {
+                    todasPublicacoesContainer.innerHTML = '<p>Nenhuma publicação encontrada para os filtros selecionados.</p>';
+                }
+
                 let currentRow;
-                publicacoes.forEach((pub, index) => {
+                data.publicacoes.forEach((pub, index) => {
                     if (index % 3 === 0) {
                         currentRow = document.createElement('div');
                         currentRow.className = 'row';
                         todasPublicacoesContainer.appendChild(currentRow);
                     }
-                    currentRow.appendChild(criarCardPublicacao(pub));
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.className = 'blog-post-card4';
+                    cardWrapper.appendChild(criarCardPublicacao(pub));
+                    currentRow.appendChild(cardWrapper);
                 });
-
+                
+                renderizarPaginacao(data.total, currentPage);
             } catch (error) {
                 console.error("Erro ao carregar publicações:", error);
-                recentesContainer.innerHTML = '<p>Não foi possível carregar as publicações.</p>';
-                todasPublicacoesContainer.innerHTML = '';
+                todasPublicacoesContainer.innerHTML = '<p>Não foi possível carregar as publicações.</p>';
+                paginationContainer.innerHTML = '';
             }
         }
+        
+        // Adiciona listeners para os filtros e a busca
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            carregarTodasAsPublicacoes(1);
+        });
+        filtroTipo.addEventListener('change', () => carregarTodasAsPublicacoes(1));
+        filtroProjeto.addEventListener('change', () => carregarTodasAsPublicacoes(1));
+        filtroCurso.addEventListener('change', () => carregarTodasAsPublicacoes(1));
 
-        carregarPublicacoes();
+        // --- INICIALIZAÇÃO DA PÁGINA ---
+        atualizarUIComLogin();
+        popularFiltros();
+        carregarRecentes();
+        carregarTodasAsPublicacoes(1);
     });
-  </script>
+    </script>
 </body>
 </html>

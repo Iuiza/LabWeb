@@ -135,3 +135,7 @@ class PublicacaoSimplificado(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PaginatedPublicacaoResponse(BaseModel):
+    total: int
+    publicacoes: List[PublicacaoResponse]
