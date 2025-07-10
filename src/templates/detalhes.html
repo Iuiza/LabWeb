@@ -6,35 +6,238 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles/vars.css">
     <link rel="stylesheet" href="../static/styles/style.css">
+    <title>Carregando Publicação...</title>
     <style>
         /* CSS Reset */
         a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
         
-        /* Estilos específicos para a página de detalhes */
-        body { font-family: sans-serif; color: #333; }
-        .detalhe-container { max-width: 800px; margin: 40px auto; padding: 20px; }
-        .detalhe-imagem-principal { width: 100%; height: auto; max-height: 450px; object-fit: cover; border-radius: 8px; margin-bottom: 20px; }
-        .detalhe-titulo { font-size: 2.5rem; margin-bottom: 10px; }
-        .detalhe-meta { color: #666; margin-bottom: 30px; }
-        .detalhe-meta a { color: #0056b3; text-decoration: none; }
-        .detalhe-meta a:hover { text-decoration: underline; }
-        .detalhe-conteudo { font-size: 1.1rem; line-height: 1.8; white-space: pre-wrap; /* Preserva quebras de linha e espaços */ }
-        .loading-text { text-align: center; font-size: 1.2rem; padding: 50px; }
+        /* Estilos gerais do corpo para consistência */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            color: #333; 
+            background-color: #f4f7f6; /* Um fundo suave para o corpo */
+            line-height: 1.6;
+        }
+
+        /* Estilos para o cabeçalho e rodapé - mantendo a consistência do outro estilo */
+        .header, .footer {
+            background: #ffffff;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar img {
+            height: 50px; /* Ajuste o tamanho do logo */
+        }
+
+        .menu {
+            display: flex;
+            gap: 25px; /* Espaçamento entre os itens do menu */
+        }
+
+        .menu a, .menu div {
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .menu a:hover, .menu div:hover {
+            color: #0e5a8e; /* Use a cor de hover do segundo estilo */
+            cursor: pointer;
+        }
+
+        .footer .container5 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer .menu {
+            gap: 20px;
+        }
+
+        /* --- Estilos específicos para a página de detalhes da publicação --- */
+
+        /* Contêiner principal da publicação - usando o estilo "custom-card" como base */
+        .detalhe-container { 
+            max-width: 900px; /* Um pouco mais largo para o conteúdo principal */
+            margin: 40px auto; 
+            padding: 30px 40px; /* Padding ajustado */
+            background-color: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08); /* Sombra consistente */
+            box-sizing: border-box;
+        }
+
+        .detalhe-imagem-principal { 
+            width: 100%; 
+            height: auto; 
+            max-height: 480px; 
+            object-fit: cover; 
+            border-radius: 10px; 
+            margin-bottom: 30px; /* Mais espaço abaixo da imagem */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Sombra para a imagem */
+        }
+
+        .detalhe-titulo { 
+            font-size: 2.8rem; 
+            margin-bottom: 15px; 
+            color: #2c3e50; 
+            font-weight: 700; 
+            line-height: 1.2; /* Ajuste para títulos longos */
+        }
+
+        .detalhe-meta { 
+            color: #7f8c8d; 
+            margin-bottom: 35px; 
+            font-size: 0.95rem;
+        }
+
+        .detalhe-meta a { 
+            color: #2980b9; 
+            text-decoration: none; 
+            font-weight: 600;
+            transition: color 0.3s ease; 
+        }
+
+        .detalhe-meta a:hover { 
+            text-decoration: underline; 
+            color: #1a5276; 
+            cursor: pointer; /* Adiciona a mãozinha para os links de meta */
+        }
+
+        .detalhe-conteudo { 
+            font-size: 1.15rem; 
+            line-height: 1.9; 
+            white-space: pre-wrap; 
+            color: #34495e; 
+        }
+
+        .loading-text { 
+            text-align: center; 
+            font-size: 1.3rem; 
+            padding: 60px; 
+            color: #95a5a6; 
+            font-style: italic;
+        }
+
+        /* --- Mantendo os estilos do outro arquivo para consistência --- */
+        a.card-link { color: inherit; text-decoration: none; display: block; height: 100%; }
+
+        /* Estilos para o Modal de Login */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; } /* Adicionado cursor: pointer */
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loginForm button:hover { background-color: #004494; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+        
+        /* Estilos para o Dropdown do Usuário */
+        .dropdown { position: relative; }
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+        /* Estilos para a Paginação */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px; padding-bottom: 24px;}
+        .pagination button { cursor: pointer; padding: 8px 14px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-size: 1rem; }
+        .pagination button:disabled { cursor: not-allowed; background-color: #f0f0f0; color: #aaa; }
+        .pagination button.active { background-color: #0056b3; color: white; border-color: #0056b3; font-weight: bold; }
+        .pagination .button-base { display: flex; align-items: center; gap: 8px; }
+        
+        /* Estilos para Publicações Recentes (Layout Especial) */
+        #recentes-container { display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch; }
+        .blog-post-card-featured { flex: 2; min-width: 60%; max-width: 65%; display: flex; }
+        .blog-post-card-sidebar { flex: 1; min-width: 300px; max-width: 35%; display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Estilos para Unificar Altura dos Cards e Efeito Hover */
+        .custom-card { 
+            border: 1px solid #eaeaea; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            background-color: white; 
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            cursor: pointer; /* Adiciona a mãozinha no hover do card */
+        }
+        .custom-card .content-container { 
+            padding: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-grow: 1;
+        }
+        .custom-card .categories { 
+            margin-top: auto;
+            padding-top: 16px; 
+        }
+
+        .custom-card .image-container img { width: 100%; object-fit: cover; }
+        .blog-post-card-featured .custom-card .image-container img { height: 320px; }
+        .blog-post-card-sidebar .custom-card .image-container img { height: 180px; }
+        #todas-publicacoes-container .custom-card .image-container img { height: 240px; }
+        
+        /* Alinhamento para a grid de "Todas as publicações" */
+        #todas-publicacoes-container .row { display: flex; gap: 16px; align-items: stretch; margin-bottom: 16px; }
+        #todas-publicacoes-container .blog-post-card4 { flex: 1; }
+
+        /* Estilos para a nova Barra de Pesquisa e Filtros */
+        .search-and-filter-container { margin-bottom: 24px; }
+        #search-form { display: flex; margin-bottom: 16px; }
+        #search-form input { 
+            flex-grow: 1; 
+            padding: 12px; 
+            font-size: 1rem; 
+            border: 1px solid #ccc; 
+            border-right: none;
+            border-radius: 8px 0 0 8px; 
+        }
+        #search-form button { 
+            padding: 0 16px; 
+            border: 1px solid #ccc;
+            background-color: #f8f9fa; 
+            border-radius: 0 8px 8px 0; 
+            cursor: pointer; 
+        }
+        .filtros-container { display: flex; gap: 16px; flex-wrap: wrap; }
+        .filtros-container select { padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; flex-grow: 1; }
     </style>
-    <title>Carregando Publicação...</title>
 </head>
 <body>
     <div class="p-gina-inicial">
         <div class="header">
             <div class="navbar">
                 <div class="frame-1000000809">
-                  <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" /></a>
+                    <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Logo da UNEB" /></a>
                 </div>
                 <div class="menu">
-                  <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
-                  <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
-                  <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
-                  <div class="newsletter"><div class="login">Login</div><img class="person" src="../static/images/person0.svg" /></div>
+                    <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
+                    <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
+                    <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
+                    <div class="newsletter">
+                        <div class="login" id="login-button">Login</div>
+                        <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,80 +259,137 @@
         </div>
     </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const mainContent = document.getElementById('main-content');
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Usuário:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
+    </div>
 
-        /**
-         * Função para pegar o ID da publicação da URL
-         */
-        function getIdFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('id');
-        }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.getElementById('main-content');
+            const loginButton = document.getElementById('login-button');
+            const loginModal = document.getElementById('loginModal');
+            const closeButton = document.querySelector('.close-button');
 
-        function formatarData(dataIso) {
-            if (!dataIso) return '';
-            const data = new Date(dataIso);
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            return data.toLocaleDateString('pt-BR', options);
-        }
-
-        /**
-         * Função principal que busca e renderiza os detalhes da publicação
-         */
-        async function carregarDetalhes() {
-            const publicacaoId = getIdFromUrl();
-
-            if (!publicacaoId) {
-                mainContent.innerHTML = '<p class="loading-text">Erro: ID da publicação não encontrado na URL.</p>';
-                return;
+            // Funções para o modal de login
+            if (loginButton) {
+                loginButton.addEventListener('click', () => {
+                    loginModal.style.display = 'block';
+                });
             }
 
-            const apiUrl = `http://127.0.0.1:8000/postagens/exibir/${publicacaoId}`;
-
-            try {
-                const response = await fetch(apiUrl);
-
-                if (response.status === 404) {
-                    throw new Error('Publicação não encontrada.');
-                }
-                if (!response.ok) {
-                    throw new Error(`Erro na API: ${response.statusText}`);
-                }
-
-                const publicacao = await response.json();
-                
-                // Limpa a mensagem de "carregando"
-                mainContent.innerHTML = '';
-
-                // Atualiza o título da página
-                document.title = publicacao.titulo;
-
-                // Cria e adiciona os elementos dinamicamente
-                const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder-large.png';
-                
-                const headerHtml = `
-                    <h1 class="detalhe-titulo">${publicacao.titulo}</h1>
-                    <p class="detalhe-meta">
-                        Publicado por <strong>${publicacao.professor.nome}</strong> em ${formatarData(publicacao.data_publicacao)} <br>
-                        Projeto: <a href="detalhes_projeto.html?id=${publicacao.projeto.id}">${publicacao.projeto.titulo}</a>
-                    </p>
-                    <img src="${imagemSrc}" alt="Imagem principal da publicação" class="detalhe-imagem-principal">
-                    <div class="detalhe-conteudo">${publicacao.conteudo}</div>
-                `;
-
-                mainContent.innerHTML = headerHtml;
-
-            } catch (error) {
-                console.error("Falha ao carregar detalhes da publicação:", error);
-                mainContent.innerHTML = `<p class="loading-text">Erro: ${error.message}</p>`;
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    loginModal.style.display = 'none';
+                });
             }
-        }
 
-        // Inicia o processo
-        carregarDetalhes();
-    });
-  </script>
+            window.addEventListener('click', (event) => {
+                if (event.target == loginModal) {
+                    loginModal.style.display = 'none';
+                }
+            });
+
+            // Lógica de autenticação (simplificada para o exemplo)
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    // Aqui você faria a chamada real à API de login
+                    const username = loginForm.username.value;
+                    const password = loginForm.password.value;
+
+                    // Exemplo de validação simples
+                    if (username === 'user' && password === 'pass') {
+                        alert('Login bem-sucedido!');
+                        loginModal.style.display = 'none';
+                        // Redirecionar ou atualizar a UI para estado logado
+                    } else {
+                        document.getElementById('login-error').style.display = 'block';
+                    }
+                });
+            }
+
+            /**
+             * Função para pegar o ID da publicação da URL
+             */
+            function getIdFromUrl() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('id');
+            }
+
+            function formatarData(dataIso) {
+                if (!dataIso) return '';
+                const data = new Date(dataIso);
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                return data.toLocaleDateString('pt-BR', options);
+            }
+
+            /**
+             * Função principal que busca e renderiza os detalhes da publicação
+             */
+            async function carregarDetalhes() {
+                const publicacaoId = getIdFromUrl();
+
+                if (!publicacaoId) {
+                    mainContent.innerHTML = '<p class="loading-text">Erro: ID da publicação não encontrado na URL.</p>';
+                    return;
+                }
+
+                const apiUrl = `http://127.0.0.1:8000/postagens/exibir/${publicacaoId}`;
+
+                try {
+                    const response = await fetch(apiUrl);
+
+                    if (response.status === 404) {
+                        throw new Error('Publicação não encontrada.');
+                    }
+                    if (!response.ok) {
+                        throw new Error(`Erro na API: ${response.statusText}`);
+                    }
+
+                    const publicacao = await response.json();
+                    
+                    // Limpa a mensagem de "carregando"
+                    mainContent.innerHTML = '';
+
+                    // Atualiza o título da página
+                    document.title = publicacao.titulo;
+
+                    // Cria e adiciona os elementos dinamicamente
+                    const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder-large.png';
+                    
+                    const headerHtml = `
+                        <h1 class="detalhe-titulo">${publicacao.titulo}</h1>
+                        <p class="detalhe-meta">
+                            Publicado por <strong>${publicacao.professor.nome}</strong> em ${formatarData(publicacao.data_publicacao)} <br>
+                            Projeto: <a href="detalhes_projeto.html?id=${publicacao.projeto.id}">${publicacao.projeto.titulo}</a>
+                        </p>
+                        <img src="${imagemSrc}" alt="Imagem principal da publicação" class="detalhe-imagem-principal">
+                        <div class="detalhe-conteudo">${publicacao.conteudo}</div>
+                    `;
+
+                    mainContent.innerHTML = headerHtml;
+
+                } catch (error) {
+                    console.error("Falha ao carregar detalhes da publicação:", error);
+                    mainContent.innerHTML = `<p class="loading-text">Erro: ${error.message}</p>`;
+                }
+            }
+
+            // Inicia o processo
+            carregarDetalhes();
+        });
+    </script>
 </body>
 </html>
