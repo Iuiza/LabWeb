@@ -1,178 +1,789 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../static/styles/vars.css">
-  <link rel="stylesheet" href="../static/styles/style_cadastrar_projeto.css">
-  
-  
-  <style>
-   a,
-   button,
-   input,
-   select,
-   h1,
-   h2,
-   h3,
-   h4,
-   h5,
-   * {
-       box-sizing: border-box;
-       margin: 0;
-       padding: 0;
-       border: none;
-       text-decoration: none;
-       background: none;
-   
-       -webkit-font-smoothing: antialiased;
-   }
-   
-   menu, ol, ul {
-       list-style-type: none;
-       margin: 0;
-       padding: 0;
-   }
-   </style>
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/vars.css">
+    <link rel="stylesheet" href="../static/styles/style.css"> 
+    <title>Cadastrar Novo Projeto</title>
+    <style>
+        /* CSS Reset - Mantido do seu código original */
+        a, button, input, select, h1, h2, h3, h4, h5, * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border: none;
+            text-decoration: none;
+            background: none;
+            -webkit-font-smoothing: antialiased;
+        }
+        menu, ol, ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Estilos Globais e de Layout (consistentes com as páginas anteriores) --- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            color: #333; 
+            background-color: #f4f7f6; /* Um fundo suave para o corpo */
+            line-height: 1.6;
+        }
+
+        .header, .footer {
+            background: #f4f7f6;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar img {
+            height: 50px; /* Ajuste o tamanho do logo */
+        }
+
+        .menu {
+            display: flex;
+            gap: 25px; /* Espaçamento entre os itens do menu */
+            align-items: center; /* Alinha verticalmente os itens do menu */
+        }
+
+        .menu a, .menu div {
+            font-weight: 500;
+            transition: color 0.3s ease;
+            /* Remove cursor: pointer daqui, pois será aplicado especificamente onde necessário */
+        }
+
+        .menu a:hover, .menu div:hover {
+            color: #0e5a8e; /* Cor de hover consistente */
+        }
+        /* Específico para itens de menu clicáveis */
+        .menu a, .menu .user-profile-toggle, .menu .login-button { /* Adicionado .login-button */
+            cursor: pointer;
+        }
+
+
+        .footer .container { /* Mudança de .container5 para .container conforme seu HTML */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer .menu {
+            gap: 20px;
+        }
+
+        /* Estilos para o Dropdown do Usuário (se for usado aqui) */
+        .dropdown { 
+            position: relative; 
+            display: flex; /* Para alinhar o nome e o ícone de perfil */
+            align-items: center;
+            gap: 8px; /* Espaçamento entre o nome e o ícone */
+            cursor: pointer; /* Mãozinha em toda a área clicável do perfil */
+        }
+        .dropdown .user-profile-toggle { /* Nova classe para a área clicável */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .dropdown .user-profile-toggle:hover {
+            color: #0e5a8e;
+        }
+
+        .dropdown .dropdown-content { 
+            display: none; 
+            position: absolute; 
+            right: 0; 
+            background-color: #f9f9f9; 
+            min-width: 180px; 
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); 
+            z-index: 100; /* Alto z-index para ficar acima de outros elementos */
+            border-radius: 4px; 
+            top: calc(100% + 5px); /* Posiciona abaixo do item do menu */
+        }
+        .dropdown:hover .dropdown-content { display: block; } /* Ativa no hover do .dropdown */
+        .dropdown-content a { 
+            color: #333; 
+            padding: 12px 16px; 
+            text-decoration: none; 
+            display: block; 
+            white-space: nowrap; /* Impede quebras de linha em itens do menu */
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+        /* Estilos para o Modal de Login (copiado do seu outro CSS) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; } 
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loginForm button:hover { background-color: #004494; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+
+
+        /* --- Estilos Específicos da Página de Cadastro de Projetos --- */
+
+        .cadastrar-projeto-page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o footer fique no final da página */
+        }
+
+        .main-content {
+            flex-grow: 1; /* Permite que o conteúdo principal empurre o footer para baixo */
+            padding: 40px 20px; /* Padding geral para o conteúdo */
+        }
+
+        .form-container {
+            max-width: 900px; /* Largura para o formulário principal */
+            margin: 0 auto; /* Centraliza o formulário */
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08); /* Sombra consistente */
+        }
+
+        .form-container h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 30px; /* Espaçamento entre colunas */
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+        }
+
+        .form-group {
+            flex: 1; /* Faz com que os grupos ocupem o espaço disponível */
+            min-width: 280px; /* Largura mínima para cada campo */
+            position: relative; /* Para posicionar o autocomplete */
+        }
+
+        .form-group.full-width {
+            flex: 0 0 100%; /* Ocupa a largura total */
+        }
+
+        .form-group label {
+            display: block; /* Cada label em sua própria linha */
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 1rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #333;
+            background-color: #fdfdfd;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #2980b9; /* Cor de foco */
+            box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2); /* Sombra suave no foco */
+            outline: none; /* Remove outline padrão do navegador */
+        }
+
+        .form-group textarea {
+            resize: vertical; /* Permite redimensionar apenas verticalmente */
+            min-height: 120px; /* Altura mínima para a descrição */
+        }
+
+        /* Estilo específico para o campo de data com ícone */
+        .date-input-wrapper {
+            position: relative;
+            display: flex; /* Para alinhar o input e o ícone */
+            align-items: center;
+        }
+
+        .date-input-wrapper input {
+            padding-right: 40px; /* Espaço para o ícone */
+        }
+
+        .date-input-wrapper .calendar-icon {
+            position: absolute;
+            right: 12px;
+            color: #666;
+            cursor: pointer; /* Adicionado cursor pointer para o ícone de calendário */
+            font-size: 1.2rem;
+            /* pointer-events: none; - Removido para permitir o clique no ícone se o calendário for um JS customizado */
+        }
+
+        /* Estilo para a caixa de seleção de professores (autocomplete) */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-wrapper input {
+            padding-right: 35px; /* Espaço para o ícone de 'x' */
+        }
+
+        .autocomplete-wrapper .clear-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none; /* Esconde por padrão, JS mostra quando houver texto */
+        }
+        .autocomplete-wrapper input:not(:placeholder-shown) + .clear-icon {
+            display: block; /* Mostra o ícone se o input não estiver vazio */
+        }
+
+
+        .autocomplete-suggestions {
+            position: absolute;
+            width: 100%;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50; /* Garante que fique acima de outros elementos */
+            display: none; /* Esconde por padrão, JS controla a visibilidade */
+        }
+
+        .autocomplete-suggestions div {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .autocomplete-suggestions div:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-suggestions div:hover {
+            background-color: #f0f0f0;
+            color: #2980b9;
+        }
+
+        /* Estilo para o campo de upload de arquivo */
+        .file-upload-area {
+            border: 2px dashed #aed6f1; /* Borda tracejada suave */
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background-color: #ebf5fb; /* Fundo suave */
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            background-color: #d6eaf8;
+            border-color: #85c1e9;
+        }
+
+        .file-upload-area input[type="file"] {
+            display: none; /* Esconde o input de arquivo original */
+        }
+
+        .file-upload-area .upload-icon {
+            font-size: 3rem; /* Tamanho grande para o ícone */
+            color: #2980b9;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-area p {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .file-upload-area .upload-info {
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        /* Botões do formulário */
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end; /* Alinha botões à direita */
+            gap: 15px; /* Espaçamento entre os botões */
+            margin-top: 30px; /* Espaço acima dos botões */
+        }
+
+        .form-buttons button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-buttons .btn-secondary {
+            background-color: #e74c3c; /* Vermelho para cancelar */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-buttons .btn-secondary:hover {
+            background-color: #c0392b;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-buttons .btn-primary {
+            background-color: #2980b9; /* Azul primário para cadastrar */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-buttons .btn-primary:hover {
+            background-color: #21618c;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsividade básica */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0; /* Remove gap quando em coluna */
+            }
+            .form-group {
+                min-width: 100%;
+            }
+            .form-container {
+                padding: 20px;
+                margin: 20px auto;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="cadastrar-projeto">
-    <div class="footer">
-      <div class="container">
-        <div class="_2025">© 2025</div>
-        <div class="menu">
-          <div class="twitter">Twitter</div>
-          <div class="linked-in">LinkedIn</div>
-          <div class="email">Email</div>
-          <div class="instagram">Instagram</div>
-        </div>
-      </div>
-    </div>
-    <div class="text-area">
-      <form action="/projetos/cadastrar" method="POST" enctype="multipart/form-data" class="text-area">
-        <!-- Título -->
-        <div>
-          <label for="titulo">Título do Projeto</label>
-          <input type="text" id="titulo" name="titulo" required />
-        </div>
-
-        <!-- Descrição -->
-        <div>
-          <label for="descricao">Descrição</label>
-          <textarea id="descricao" name="descricao" rows="4"></textarea>
-        </div>
-
-        <!-- Data Início -->
-        <div>
-          <label for="data_inicio">Data de Início</label>
-          <input type="date" id="data_inicio" name="data_inicio" required />
-        </div>
-
-        <!-- Data Fim -->
-        <div>
-          <label for="data_fim">Data de Fim</label>
-          <input type="date" id="data_fim" name="data_fim" />
-        </div>
-
-        <!-- Status -->
-        <div>
-          <label for="status">Status</label>
-          <select id="status" name="status">
-            <option value="ATIVO">Ativo</option>
-            <option value="INATIVO">Inativo</option>
-            <option value="EM_ANDAMENTO">Em andamento</option>
-          </select>
-        </div>
-
-        <!-- Público -->
-        <div>
-          <label for="publico">Público</label>
-          <input type="text" id="publico" name="publico" placeholder="Sim / Não" required />
-        </div>
-
-        <!-- Curso -->
-        <div>
-          <label for="curso_id">Curso</label>
-          <select id="curso_id" name="curso_id" required>
-            <option value="1">Sistemas de Informação</option>
-            <option value="2">Administração</option>
-            <option value="3">Outro...</option>
-          </select>
-        </div>
-
-        <!-- Professores responsáveis (multiseleção) -->
-        <div>
-          <label for="professor_ids_responsaveis">Professores Responsáveis</label>
-          <select id="professor_ids_responsaveis" name="professor_ids_responsaveis" multiple>
-            <option value="1">Caio</option>
-          </select>
-        </div>
-
-        <!-- Imagem -->
-        <div>
-          <label for="imagem_capa">Imagem de Capa</label>
-          <input type="file" id="imagem_capa" name="imagem_capa" accept="image/png,image/jpeg" />
-        </div>
-
-        <!-- Botões -->
-        <div>
-          <button type="reset">Cancelar</button>
-          <button type="submit">Cadastrar Projeto</button>
-        </div>
-      </form>
-    <div class="text-1"></div>
-    <div class="header2">
-      <div class="navbar">
-        <div class="frame-1000000809">
-        <a href="index.html">
-          <img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" />
-        </a>
-        </div>
-        <div class="menu">
-          <div class="search-bar">
-            <div class="state-layer4">
-              <div class="leading-icon">
-                <div class="container2">
-                  <div class="state-layer">
-                    <img class="icon3" src="../static/images/icon2.svg" />
-                  </div>
+    <div class="cadastrar-projeto-page">
+        <div class="header">
+            <div class="navbar">
+                <div class="frame-1000000809">
+                    <a href="index.html">
+                        <img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" />
+                    </a>
                 </div>
-              </div>
-              <div class="content3">
-                <div class="supporting-text">Buscar</div>
-              </div>
-              <div class="trailing-elements">
-                <div class="_1st-trailing-icon">
-                  <div class="container2">
-                    <div class="state-layer">
-                      <img class="icon4" src="../static/images/icon3.svg" />
+                <div class="menu">
+                    <div class="blog">
+                        <a href="noticias.html" class="not-cias">Notícias</a>
                     </div>
-                  </div>
+                    <div class="projects">
+                        <a href="eventos.html" class="eventos">Eventos</a>
+                    </div>
+                    <div class="about">
+                        <a href="projetos.html" class="projetos">Projetos</a>
+                    </div>
+                    <div class="newsletter dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span> <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content">
+                            </div>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div class="blog">
-            <a href="noticias.html" class="not-cias">Notícias</a>
-          </div>
-          <div class="projects">
-            <a href="eventos.html" class="eventos">Eventos</a>
-          </div>
-          <div class="about">
-            <a href="projetos.html" class="projetos">Projetos</a>
-          </div>
-          <div class="newsletter dropdown">
-            <div class="nome">Nome</div>
-            <img class="person" src="../static/images/person0.svg" />
-            <div class="dropdown-content">
-              <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-            </div>
-          </div>
         </div>
-      </div>
+
+        <div class="main-content">
+            <div class="form-container">
+                <h1>Cadastrar Novo Projeto</h1>
+                <form action="/projetos/cadastrar" method="POST" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="titulo">Título do Projeto</label>
+                            <input type="text" id="titulo" name="titulo" placeholder="Digite o título do projeto" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ícone do Projeto (JPG, JPEG ou PNG)</label>
+                            <div class="file-upload-area">
+                                <span class="upload-icon">&#x2191;</span> <p><strong>Clique ou arraste o arquivo aqui para fazer upload</strong></p>
+                                <p class="upload-info">Suporte para um único ou upload em massa. Tamanho máximo do arquivo 2MB.</p>
+                                <input type="file" id="imagem_capa" name="imagem_capa" accept="image/png,image/jpeg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="descricao">Descrição</label>
+                            <textarea id="descricao" name="descricao" rows="6" placeholder="Descreva seu projeto em detalhes..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="ATIVO">Ativo</option>
+                                <option value="INATIVO">Inativo</option>
+                                <option value="EM_ANDAMENTO">Em andamento</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publico">Público</label>
+                            <input type="text" id="publico" name="publico" placeholder="Ex: Interno, Comunidade, Alunos" required />
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="data_inicio">Data de Início</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="data_inicio" name="data_inicio" placeholder="mm/dd/yyyy" required />
+                                <span class="calendar-icon">&#x1F4C5;</span> </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="data_fim">Data de Fim (Opcional)</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="data_fim" name="data_fim" placeholder="mm/dd/yyyy" />
+                                <span class="calendar-icon">&#x1F4C5;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="curso_id">Curso</label>
+                            <select id="curso_id" name="curso_id" required>
+                                <option value="">Selecione um curso...</option>
+                                <option value="1">Sistemas de Informação</option>
+                                <option value="2">Administração</option>
+                                <option value="3">Outro...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group autocomplete-wrapper">
+                            <label for="professor_nome">Professor(es)</label>
+                            <input type="text" id="professor_nome" name="professor_nome" placeholder="Digite o nome do professor" />
+                            <span class="clear-icon">&times;</span> <div id="professor-suggestions" class="autocomplete-suggestions">
+                                <div>Caio</div>
+                                <div>San Francisco</div>
+                                <div>New York</div>
+                                <div>Seattle</div>
+                                <div>Los Angeles</div>
+                                <div>Chicago</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="reset" class="btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn-primary">Criar Projeto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="container">
+                <div class="_2025">© 2025</div>
+                <div class="menu">
+                    <div class="twitter">Twitter</div>
+                    <div class="linked-in">LinkedIn</div>
+                    <div class="email">Email</div>
+                    <div class="instagram">Instagram</div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label> <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos do Header/Login
+            const userProfileToggle = document.getElementById('user-profile-toggle');
+            const userNameSpan = userProfileToggle.querySelector('.user-name');
+            const userDropdownContent = document.getElementById('user-dropdown-content');
+
+            // Elementos do Modal de Login
+            const loginModal = document.getElementById('loginModal');
+            const closeButton = loginModal.querySelector('.close-button');
+            const loginForm = document.getElementById('loginForm');
+            const loginError = document.getElementById('login-error');
+
+            // --- Funções de Login/UI ---
+
+            // Abre o modal de login se o usuário clicar em "Login"
+            userProfileToggle.addEventListener('click', () => {
+                const token = localStorage.getItem('accessToken');
+                if (!token) { // Só abre o modal se não estiver logado
+                    loginModal.style.display = 'block';
+                }
+                // Se estiver logado, o dropdown já abre via CSS :hover
+            });
+
+            // Fecha o modal ao clicar no 'x'
+            closeButton.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+                loginError.style.display = 'none'; // Limpa mensagens de erro ao fechar
+                loginForm.reset(); // Reseta o formulário
+            });
+
+            // Fecha o modal ao clicar fora dele
+            window.addEventListener('click', (event) => {
+                if (event.target == loginModal) {
+                    loginModal.style.display = 'none';
+                    loginError.style.display = 'none';
+                    loginForm.reset();
+                }
+            });
+
+            // Lógica de Submissão do Formulário de Login
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                loginError.style.display = 'none'; // Esconde erros anteriores
+
+                const email = loginForm.username.value; // Assumindo 'username' é o campo de email
+                const password = loginForm.password.value;
+
+                // Construir formData para application/x-www-form-urlencoded
+                const formData = new URLSearchParams();
+                formData.append('username', email); // O backend FastAPI espera 'username'
+                formData.append('password', password);
+
+                try {
+                    const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData.toString(), // Converter URLSearchParams para string
+                    });
+
+                    if (!loginResponse.ok) {
+                        // Se a resposta não for OK, tentar ler a mensagem de erro da API
+                        const errorData = await loginResponse.json();
+                        throw new Error(errorData.detail || 'Email ou senha incorretos.');
+                    }
+
+                    const tokenData = await loginResponse.json();
+                    localStorage.setItem('accessToken', tokenData.access_token);
+
+                    // Buscar dados do usuário logado
+                    const userResponse = await fetch('http://127.0.0.1:8000/professores/me', {
+                        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                    });
+                    if (!userResponse.ok) {
+                        const errorData = await userResponse.json();
+                        throw new Error(errorData.detail || 'Não foi possível buscar os dados do usuário.');
+                    }
+                    const userData = await userResponse.json();
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    
+                    alert('Login realizado com sucesso!');
+                    loginModal.style.display = 'none';
+                    loginForm.reset(); // Limpa os campos do formulário
+                    atualizarUIComLogin(); // Atualiza o header com o nome do usuário
+                } catch (error) {
+                    loginError.textContent = error.message;
+                    loginError.style.display = 'block';
+                }
+            });
+            
+            // Função para atualizar a UI com base no status de login
+            function atualizarUIComLogin() {
+                const token = localStorage.getItem('accessToken');
+                const userDataString = localStorage.getItem('currentUser');
+
+                if (token && userDataString) {
+                    const user = JSON.parse(userDataString);
+                    userNameSpan.textContent = user.nome.split(' ')[0]; // Exibe apenas o primeiro nome
+                    // Oculta o ícone de 'person' se quiser, ou mantém para indicar perfil
+                    // userProfileToggle.querySelector('.person').style.display = 'none'; 
+
+                    // Preenche o dropdown com opções de logado
+                    userDropdownContent.innerHTML = `
+                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                        <a href="#">Minhas Publicações</a>
+                        <a href="#">Configurações</a>
+                        <a href="#" id="logoutBtn">Sair</a>
+                    `;
+                    // Adiciona o event listener para o botão de logout
+                    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('currentUser');
+                        alert('Você saiu da sua conta.');
+                        window.location.reload(); // Recarrega a página para refletir o logout
+                    });
+
+                    // Se você quiser esconder o dropdown quando o usuário não clica,
+                    // mas ainda mostrar o nome, você precisará de mais JS para controlar isso.
+                    // Por enquanto, o CSS :hover ainda funciona.
+                } else {
+                    userNameSpan.textContent = 'Login'; // Volta para "Login"
+                    // userProfileToggle.querySelector('.person').style.display = 'block'; // Mostra o ícone novamente
+                    userDropdownContent.innerHTML = ''; // Limpa o dropdown
+                }
+            }
+
+            // --- Lógica de Carregamento de Detalhes da Publicação (Mantida, se esta for a página de detalhes) ---
+            // Se esta página é para 'cadastrar projeto', a lógica abaixo não é relevante aqui
+            // mas mantive caso você esteja unificando scripts.
+
+            // /**
+            //  * Função para pegar o ID da publicação da URL
+            //  */
+            // function getIdFromUrl() {
+            //     const params = new URLSearchParams(window.location.search);
+            //     return params.get('id');
+            // }
+
+            // function formatarData(dataIso) {
+            //     if (!dataIso) return '';
+            //     const data = new Date(dataIso);
+            //     const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            //     return data.toLocaleDateString('pt-BR', options);
+            // }
+
+            // /**
+            //  * Função principal que busca e renderiza os detalhes da publicação
+            //  */
+            // async function carregarDetalhes() {
+            //     // ... (lógica de carregamento de detalhes da publicação) ...
+            // }
+
+
+            // --- Lógica de Autocomplete (Mantida do seu código anterior) ---
+            const professorInput = document.getElementById('professor_nome');
+            const suggestionsContainer = document.getElementById('professor-suggestions');
+            const clearIcon = professorInput.nextElementSibling; // O ícone 'x'
+
+            professorInput.addEventListener('input', () => {
+                const query = professorInput.value.toLowerCase();
+                if (query.length > 0) {
+                    suggestionsContainer.style.display = 'block';
+                    clearIcon.style.display = 'block';
+
+                    const items = suggestionsContainer.querySelectorAll('div');
+                    items.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(query)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                    clearIcon.style.display = 'none';
+                }
+            });
+
+            suggestionsContainer.addEventListener('click', (event) => {
+                if (event.target.tagName === 'DIV') {
+                    professorInput.value = event.target.textContent;
+                    suggestionsContainer.style.display = 'none';
+                    clearIcon.style.display = 'block';
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!professorInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            clearIcon.addEventListener('click', () => {
+                professorInput.value = '';
+                suggestionsContainer.style.display = 'none';
+                clearIcon.style.display = 'none';
+                professorInput.focus();
+            });
+
+            // --- Lógica de Upload de Arquivo (Mantida do seu código anterior) ---
+            const fileUploadArea = document.querySelector('.file-upload-area');
+            const fileInput = document.getElementById('imagem_capa');
+
+            fileUploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    const fileName = fileInput.files[0].name;
+                    const uploadText = fileUploadArea.querySelector('p');
+                    uploadText.innerHTML = `Arquivo selecionado: <strong>${fileName}</strong>`;
+                    fileUploadArea.querySelector('.upload-info').textContent = 'Pronto para enviar.';
+                } else {
+                    const uploadText = fileUploadArea.querySelector('p');
+                    uploadText.innerHTML = `<strong>Clique ou arraste o arquivo aqui para fazer upload</strong>`;
+                    fileUploadArea.querySelector('.upload-info').textContent = 'Suporte para um único ou upload em massa. Tamanho máximo do arquivo 2MB.';
+                }
+            });
+
+            fileUploadArea.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                fileUploadArea.style.borderColor = '#2980b9';
+                fileUploadArea.style.backgroundColor = '#e1f0fa';
+            });
+
+            fileUploadArea.addEventListener('dragleave', (event) => {
+                fileUploadArea.style.borderColor = '#aed6f1';
+                fileUploadArea.style.backgroundColor = '#ebf5fb';
+            });
+
+            fileUploadArea.addEventListener('drop', (event) => {
+                event.preventDefault();
+                fileUploadArea.style.borderColor = '#aed6f1';
+                fileUploadArea.style.backgroundColor = '#ebf5fb';
+                
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const changeEvent = new Event('change');
+                    fileInput.dispatchEvent(changeEvent);
+                }
+            });
+
+
+            // --- Chamada inicial para atualizar a UI ao carregar a página ---
+            atualizarUIComLogin();
+        });
+    </script>
 </body>
 </html>
