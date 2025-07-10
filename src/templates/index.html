@@ -373,8 +373,8 @@
         async function popularFiltros() {
             try {
                 const [projetosRes, cursosRes] = await Promise.all([
-                    fetch(`${apiUrlBase}/projetos/`),
-                    fetch(`${apiUrlBase}/cursos/`)
+                    fetch(`${apiUrlBase}/projetos/listar`),
+                    fetch(`${apiUrlBase}/cursos/listar`)
                 ]);
                 const projetos = await projetosRes.json();
                 const cursos = await cursosRes.json();
