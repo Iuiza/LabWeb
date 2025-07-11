@@ -39,7 +39,13 @@
         .pagination .button-base { display: flex; align-items: center; gap: 8px; }
         
         /* Estilos para Publicações Recentes (Layout Especial) */
-        #recentes-container { display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch; }
+        #recentes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            align-items: stretch;
+            justify-content: center; /* Adicionado para centralizar os itens horizontalmente */
+        }
         .blog-post-card-featured { flex: 2; min-width: 60%; max-width: 65%; display: flex; }
         .blog-post-card-sidebar { flex: 1; min-width: 300px; max-width: 35%; display: flex; flex-direction: column; gap: 16px; }
         

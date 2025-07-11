@@ -141,23 +141,29 @@ async def listar_projetos(
     Lista todos os projetos de extensão cadastrados na plataforma.
     Esta rota é pública e não requer autenticação.
     """
-    # Cria a consulta para buscar todos os projetos
     query = (
         select(Projeto)
-        .order_by(Projeto.data_inicio.desc()) # Ordena pelos mais recentes primeiro
-        # Eager Loading: Carrega os dados relacionados para evitar o erro MissingGreenlet
-        # e otimizar as consultas ao banco de dados.
+        .order_by(Projeto.data_inicio.desc())
         .options(
-            selectinload(Projeto.curso),
+            # Corrente principal: Carregue o 'curso' e, a partir dele, o 'departamento'.
+            selectinload(Projeto.curso).selectinload(Curso.departamento),
+            
+            # Carregamento do relacionamento muitos-para-muitos com professores.
             selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            
+            # Carregamento das publicações relacionadas.
             selectinload(Projeto.publicacoes)
         )
     )
 
-    # Executa a consulta
     result = await session.execute(query)
-    projetos = result.scalars().all()
+    
+    # Adicionar .unique() é uma boa prática para evitar duplicatas do objeto principal (Projeto)
+    # que podem ocorrer devido aos joins do eager loading.
+    projetos = result.scalars().unique().all()
 
+    # Agora, quando o FastAPI for serializar a resposta, todos os dados
+    # (projeto, curso, departamento, professores, etc.) já estarão em memória.
     return projetos
 
 @router.get(
