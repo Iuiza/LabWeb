@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from .. import schemas
 from ..dependencies import get_db_session, get_current_active_user
 from enums.status import ProjetoStatusEnum
-from models.db import Projeto, Professor, Administrador, ProjetoProfessor
+from models.db import Projeto, Professor, Administrador, ProjetoProfessor, Curso, Departamento
 
 router = APIRouter()
 
@@ -179,7 +179,7 @@ async def get_detalhes_projeto(
         select(Projeto)
         .where(Projeto.id == projeto_id)
         .options(
-            selectinload(Projeto.curso),
+            selectinload(Projeto.curso).selectinload(Curso.departamento).selectinload(Departamento.campus),
             selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
             selectinload(Projeto.publicacoes)
         )
@@ -189,9 +189,7 @@ async def get_detalhes_projeto(
     # Se o projeto com o ID fornecido não existir, retorna um erro 404
     if not projeto:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
-
-    # REMOVEMOS todo o bloco de verificação de permissão (if isinstance(current_user...))
-
+    
     return projeto
 
 # 2. ROTA PARA SALVAR AS INFORMAÇÕES EDITADAS

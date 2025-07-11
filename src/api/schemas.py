@@ -88,6 +88,14 @@ class ProfessorSimplificado(ProfessorBase):
     class Config:
         from_attributes = True
 
+# ---- Publicação (Schemas Simplificados para uso em outras respostas) ----
+class PublicacaoSimplificado(BaseModel):
+    id: int
+    titulo: str
+
+    class Config:
+        from_attributes = True
+
 # ---- Projeto ----
 class ProjetoBase(BaseModel):
     titulo: str = Field(..., min_length=3)
@@ -99,14 +107,6 @@ class ProjetoBase(BaseModel):
     publico: str
     curso_id: int
 
-class ProjetoResponse(ProjetoBase):
-    id: int
-    curso: CursoSimplificado
-    professores: List[ProfessorSimplificado] = []
-    publicacoes: List["PublicacaoSimplificado"] = []
-    class Config:
-        from_attributes = True
-
 class ProjetoSimplesResponse(BaseModel):
     id: int
     titulo: str
@@ -114,7 +114,16 @@ class ProjetoSimplesResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# ---- Publicação ----
+class ProjetoResponse(ProjetoBase):
+    id: int
+    curso: CursoResponse 
+    professores: List[ProfessorSimplificado] = []
+    publicacoes: List[PublicacaoSimplificado] = []
+    
+    class Config:
+        from_attributes = True
+
+# ---- Publicação (Schemas Completos) ----
 class PublicacaoBase(BaseModel):
     titulo: str
     tipo: PublicacaoTipoEnum
@@ -126,12 +135,6 @@ class PublicacaoResponse(PublicacaoBase):
     path_imagem: str | None = None
     professor: ProfessorResponse
     projeto: ProjetoSimplesResponse
-
-    class Config:
-        from_attributes = True
-
-class PublicacaoSimplificado(BaseModel):
-    id: int
 
     class Config:
         from_attributes = True
