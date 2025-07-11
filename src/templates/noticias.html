@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../static/styles/vars.css">
     <link rel="stylesheet" href="../static/styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Notícias - UNEB em Foco</title>
     <style>
         /* CSS Reset */
@@ -14,14 +15,12 @@
         /* --- Estilos Globais e de Layout (consistentes entre as páginas) --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
             background-color: #f4f7f6; /* Um fundo suave para o corpo */
             line-height: 1.6;
         }
 
         .header {
             background-color: #ffffff; /* Fundo branco para o novo header */
-            color: #333;
             padding: 15px 0;
             border-bottom: 1px solid #eee; /* Linha sutil na parte inferior */
         }
@@ -66,12 +65,10 @@
             flex-grow: 1;
             padding: 0;
             font-size: 0.95rem;
-            color: #333;
             background: none;
             outline: none;
         }
         .search-bar .search-icon {
-            color: #777;
             margin-right: 10px;
             font-size: 1.1rem;
         }
@@ -81,7 +78,6 @@
             padding: 0;
             margin: 0;
             cursor: pointer;
-            color: #777;
             font-size: 1.1rem;
             transition: color 0.2s ease;
         }
@@ -96,7 +92,6 @@
         }
 
         .menu a { /* Estilo para links do menu principal */
-            color: #555; /* Cor mais escura para os links do menu */
             font-weight: 500;
             transition: color 0.3s ease;
             cursor: pointer;
@@ -121,7 +116,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #555; /* Cor do nome de usuário */
             font-weight: 500;
             transition: color 0.3s ease;
         }
@@ -146,7 +140,6 @@
         }
         .dropdown:hover .dropdown-content { display: block; }
         .dropdown-content a {
-            color: #333;
             padding: 12px 16px;
             text-decoration: none;
             display: block;
@@ -157,7 +150,7 @@
         /* Estilos para o Modal de Login */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
-        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
         #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
         #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
@@ -166,8 +159,7 @@
 
 
         .footer { /* Rodapé */
-            background-color: #2c3e50; /* Uma cor escura para o rodapé */
-            color: #ecf0f1; /* Cor do texto clara */
+            background-color: #f9f9f9; /* Uma cor escura para o rodapé */
             padding: 15px 0;
             text-align: center;
         }
@@ -184,7 +176,6 @@
             gap: 20px;
         }
         .footer .menu div {
-            color: #ecf0f1;
             font-weight: 400;
             cursor: default;
         }
@@ -209,8 +200,7 @@
         }
         .hero-section .hero-title {
             font-size: 5rem; /* Fonte grande para o título principal */
-            font-weight: 800;
-            color: #2c3e50;
+            font-weight: 700;
             line-height: 1.1;
             flex-grow: 1; /* Ocupa o máximo de espaço possível */
             text-align: center; /* Centraliza o texto */
@@ -231,7 +221,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #555;
             font-size: 1.1rem;
             font-weight: 600;
             /* cursor: pointer; Removido para o select */
@@ -245,7 +234,6 @@
             border-radius: 5px;
             background-color: #fff;
             font-size: 1rem;
-            color: #333;
             cursor: pointer;
             outline: none;
             appearance: none; /* Remove a seta padrão do select */
@@ -367,15 +355,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-        }
-        .custom-card .badge {
-            background-color: #e8f6f3;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #28b463;
-            text-transform: uppercase;
         }
 
         /* Paginação */
@@ -500,8 +479,11 @@
                 <div class="left-section">
                     <a href="index.html"><img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
                     <form id="search-form" class="search-bar">
-                        <span class="search-icon">&#128269;</span> <input type="text" id="search-input" placeholder="Buscar">
-                        <button type="submit">Go</button> </form>
+                        <input type="text" id="search-input" placeholder="Buscar">
+                            <button type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                    </form>
                 </div>
                 <div class="menu">
                     <a href="noticias.html" class="not-cias active">Notícias</a> <a href="eventos.html" class="eventos">Eventos</a>
