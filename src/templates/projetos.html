@@ -632,79 +632,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica de Submissão do Formulário de Login
     loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        loginError.style.display = 'none';
+            event.preventDefault();
+            loginError.style.display = 'none';
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            const formData = new URLSearchParams({ username: email, password: password });
 
-        const email = loginForm.username.value;
-        const password = loginForm.password.value;
-        const formData = new URLSearchParams();
-        formData.append('username', email);
-        formData.append('password', password);
+            try {
+                const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData,
+                });
+                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+                const tokenData = await loginResponse.json();
+                localStorage.setItem('accessToken', tokenData.access_token);
 
-        try {
-            const loginResponse = await fetch('[http://127.0.0.1:8000/auth/login](http://127.0.0.1:8000/auth/login)', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString(),
-            });
+                const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                });
+                if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
 
-            if (!loginResponse.ok) {
-                const errorData = await loginResponse.json();
-                throw new Error(errorData.detail || 'Email ou senha incorretos.');
-            }
-
-            const tokenData = await loginResponse.json();
-            localStorage.setItem('accessToken', tokenData.access_token);
-
-            const userResponse = await fetch('[http://127.0.0.1:8000/professores/me](http://127.0.0.1:8000/professores/me)', {
-                headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-            });
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                throw new Error(errorData.detail || 'Não foi possível buscar os dados do usuário.');
-            }
-            const userData = await userResponse.json();
-            localStorage.setItem('currentUser', JSON.stringify(userData));
-
-            alert('Login realizado com sucesso!');
-            loginModal.style.display = 'none';
-            loginForm.reset();
-            atualizarUIComLogin();
-        } catch (error) {
-            loginError.textContent = error.message;
-            loginError.style.display = 'block';
-        }
-    });
-
-    // Função para atualizar a UI com base no status de login
-    function atualizarUIComLogin() {
-        const token = localStorage.getItem('accessToken');
-        const userDataString = localStorage.getItem('currentUser');
-
-        if (token && userDataString) {
-            const user = JSON.parse(userDataString);
-            userNameSpan.textContent = user.nome.split(' ')[0];
-
-            userDropdownContent.innerHTML = `
-                <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                <a href="meus_projetos.html">Meus Projetos</a>
-                <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                <a href="minhas_publicacoes.htm">Minhas Publicações</a>
-                <a href="configuracoes.html">Configurações</a>
-                <a href="#" id="logoutBtn">Sair</a>
-            `;
-            document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                e.preventDefault();
+                const meData = await userResponse.json(); // { "role": "...", "user_data": {...} }
+                
+                localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+                localStorage.setItem('userRole', meData.role);
+                
+                alert('Login realizado com sucesso!');
+                loginModal.style.display = 'none';
+                atualizarUIComLogin();
+            } catch (error) {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('currentUser');
-                alert('Você saiu da sua conta.');
-                window.location.reload();
-            });
-        } else {
-            userNameSpan.textContent = 'Login';
-            userDropdownContent.innerHTML = '';
+                localStorage.removeItem('userRole');
+                loginError.textContent = error.message;
+                loginError.style.display = 'block';
+            }
+        });
+        
+        function atualizarUIComLogin() {
+            const token = localStorage.getItem('accessToken');
+            const userDataString = localStorage.getItem('currentUser');
+            const userRole = localStorage.getItem('userRole'); // Pega o papel do usuário
+            const loginDiv = loginContainer.querySelector('.login');
+
+            if (token && userDataString && userRole) {
+                const user = JSON.parse(userDataString);
+                loginDiv.textContent = user.nome; 
+
+                let dropdownHtml = '';
+
+                if (userRole === 'administrador') {
+                    // Menu do Administrador
+                    dropdownHtml = `
+                        <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                        <a href="#" id="logoutBtn">Sair</a>
+                    `;
+                    } else {
+                        // Menu do Professor
+                        dropdownHtml = `
+                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                            <a href="meus_projetos.html">Meus Projetos</a>
+                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                            <a href="configuracoes.html">Configurações</a>
+                            <a href="#" id="logoutBtn">Sair</a>
+                        `;
+                    }
+
+                dropdownContent.innerHTML = dropdownHtml;
+
+                document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('userRole');
+                    alert('Você saiu da sua conta.');
+                    window.location.reload();
+                });
+            } else {
+                loginDiv.textContent = 'Login';
+                dropdownContent.innerHTML = '';
+            }
         }
-    }
     // --- FIM Elementos do Header/Login ---
 
     function criarCardProjeto(projeto) {
