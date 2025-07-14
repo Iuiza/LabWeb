@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from typing import Union
 
 from .. import schemas
-from ..dependencies import get_db_session
+from ..dependencies import get_db_session, get_current_active_user
 from models.db import Administrador, Professor # Importar ambos os modelos
 from .. import security
 from config import settings
@@ -69,3 +70,19 @@ async def login_for_access_token(
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get(
+    "/me",
+    response_model=schemas.MeResponse,
+    summary="Obter dados do usuário logado"
+)
+async def read_users_me(
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user)
+):
+    """
+    Retorna os dados e o papel (role) do usuário
+    atualmente autenticado.
+    """
+    role = "administrador" if isinstance(current_user, Administrador) else "professor"
+
+    return {"role": role, "user_data": current_user}

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 from enums.status import ProjetoStatusEnum
 from enums.tipo import PublicacaoTipoEnum
@@ -12,6 +12,14 @@ class Token(BaseModel):
 class PasswordChange(BaseModel):
     senha_antiga: str
     senha_nova: str
+
+class AdministradorResponse(BaseModel):
+    id: int
+    nome: str
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
 
 # ---- Campus ----
 class CampusBase(BaseModel):
@@ -146,3 +154,9 @@ class PublicacaoResponse(PublicacaoBase):
 class PaginatedPublicacaoResponse(BaseModel):
     total: int
     publicacoes: List[PublicacaoResponse]
+
+UserDetail = Union[ProfessorResponse, AdministradorResponse]
+
+class MeResponse(BaseModel):
+    role: str
+    user_data: UserDetail
