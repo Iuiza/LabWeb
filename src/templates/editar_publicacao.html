@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/vars.css">
+    <title>Editar Publicação - UNEB em Foco</title>
+    <style>
+        /* CSS Reset e Estilos Gerais (Reutilizados) */
+        body, h1, h2, h3, p, div, button, a, ul, li, form, label, input, select, textarea { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        body { background-color: #f8f9fa; color: #343a40; }
+        .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+        .main-content { flex-grow: 1; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .navbar .logo img { height: 45px; }
+        .navbar .menu { display: flex; gap: 30px; align-items: center; }
+        .navbar .menu a { font-weight: 500; color: #333; }
+        .footer { background-color: #fff; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; margin-top: 60px;}
+
+        /* Estilos do Formulário (Reutilizados) */
+        .form-section { padding: 40px 0; }
+        .form-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .form-container h1 { font-size: 2.5rem; font-weight: 700; color: #101828; margin-bottom: 30px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #343a40; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); }
+        .form-group input[type="file"] { padding: 8px; background-color: #f8f9fa; }
+        .submit-button { width: 100%; padding: 15px; background-color: #0056b3; color: white; font-size: 1.1rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+        .submit-button:hover { background-color: #004494; }
+        .status-message { text-align: center; margin-top: 20px; padding: 10px; border-radius: 6px; }
+        .status-message.success { background-color: #d1e7dd; color: #0f5132; }
+        .status-message.error { background-color: #f8d7da; color: #842029; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+             <nav class="navbar container">
+                <div class="logo">
+                    <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                </div>
+                <div class="menu">
+                    <a href="index.html">Início</a>
+                    <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                </div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="container form-section">
+                <div id="form-container" class="form-container">
+                    <h1>Editar Publicação</h1>
+                    <form id="edit-form">
+                        <div class="form-group">
+                            <label for="titulo">Título da Publicação</label>
+                            <input type="text" id="titulo" name="titulo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="conteudo">Conteúdo</label>
+                            <textarea id="conteudo" name="conteudo" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo">Tipo</label>
+                            <select id="tipo" name="tipo" required>
+                                <option value="NOTICIA">Notícia</option>
+                                <option value="EVENTO">Evento</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="projeto">Vincular ao Projeto</label>
+                            <select id="projeto" name="projeto_id" required>
+                                <option value="">Carregando projetos...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="imagem">Alterar Imagem de Capa (opcional)</label>
+                            <input type="file" id="imagem" name="imagem" accept="image/png, image/jpeg">
+                        </div>
+                        <button type="submit" class="submit-button">Salvar Alterações</button>
+                    </form>
+                    <div id="status-message" class="status-message" style="display: none;"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="container">
+                <p>© 2025 UNEB em Foco</p>
+            </div>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('edit-form');
+    const projetoSelect = document.getElementById('projeto');
+    const statusMessage = document.getElementById('status-message');
+    const formContainer = document.getElementById('form-container');
+    const apiUrlBase = 'http://127.0.0.1:8000';
+    const token = localStorage.getItem('accessToken');
+    
+    const publicacaoId = new URLSearchParams(window.location.search).get('id');
+
+    // Guarda de rota: verifica se o usuário está logado e se há um ID na URL
+    function verificarAcesso() {
+        if (!token) {
+            formContainer.innerHTML = `<h1>Acesso Negado</h1><p style="text-align: center;">Você precisa estar logado para acessar esta página. <a href="index.html">Voltar</a></p>`;
+            return false;
+        }
+        if (!publicacaoId) {
+            formContainer.innerHTML = `<h1>Erro</h1><p style="text-align: center;">ID da publicação não fornecido. <a href="minhas_publicacoes.html">Voltar</a></p>`;
+            return false;
+        }
+        return true;
+    }
+
+    async function carregarDadosIniciais() {
+        if (!verificarAcesso()) return;
+
+        try {
+            // Busca os dados da publicação específica para preencher o formulário
+            const pubResponse = await fetch(`${apiUrlBase}/postagens/exibir/${publicacaoId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!pubResponse.ok) throw new Error('Não foi possível carregar os dados da publicação.');
+            const publicacao = await pubResponse.json();
+
+            // Busca todos os projetos para preencher o dropdown
+            const projetosResponse = await fetch(`${apiUrlBase}/projetos/listar`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!projetosResponse.ok) throw new Error('Não foi possível carregar os projetos.');
+            const projetosData = await projetosResponse.json();
+
+            // Preenche o formulário com os dados existentes
+            document.getElementById('titulo').value = publicacao.titulo;
+            document.getElementById('conteudo').value = publicacao.conteudo;
+            document.getElementById('tipo').value = publicacao.tipo;
+            
+            // Preenche o dropdown de projetos e seleciona o correto
+            projetoSelect.innerHTML = '<option value="">Selecione um projeto</option>';
+            projetosData.items.forEach(projeto => {
+                const option = new Option(projeto.titulo, projeto.id);
+                projetoSelect.add(option);
+            });
+            projetoSelect.value = publicacao.projeto.id;
+
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+            statusMessage.textContent = error.message;
+            statusMessage.className = 'status-message error';
+            statusMessage.style.display = 'block';
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusMessage.style.display = 'none';
+
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(`${apiUrlBase}/postagens/editar/${publicacaoId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Ocorreu um erro ao atualizar a publicação.');
+            }
+
+            const publicacaoAtualizada = await response.json();
+            statusMessage.textContent = `Publicação "${publicacaoAtualizada.titulo}" atualizada com sucesso!`;
+            statusMessage.className = 'status-message success';
+            statusMessage.style.display = 'block';
+
+        } catch (error) {
+            statusMessage.textContent = error.message;
+            statusMessage.className = 'status-message error';
+            statusMessage.style.display = 'block';
+        }
+    });
+    
+    // Inicialização da página
+    carregarDadosIniciais();
+});
+</script>
+</body>
+</html>
