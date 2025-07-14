@@ -403,14 +403,27 @@
                     <div class="about">
                         <a href="projetos.html" class="projetos">Projetos</a>
                     </div>
-                    <div class="newsletter dropdown">
-                        <div class="user-profile-toggle" id="user-profile-toggle">
-                            <span class="user-name">Login</span> <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
-                        </div>
-                        <div class="dropdown-content" id="user-dropdown-content">
-                            </div>
+                        <div id="login-container" class="newsletter dropdown">
+                        <div class="login">Login</div>
+                        <img class="person" src="../static/images/person0.svg" />
+                        <div id="dropdown-content" class="dropdown-content"></div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" class="close-button">&times;</span>
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Entrar</button>
+                    <p id="login-error"></p>
+                </form>
             </div>
         </div>
 
@@ -535,47 +548,29 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Elementos do Header/Login
-            const userProfileToggle = document.getElementById('user-profile-toggle');
-            const userNameSpan = userProfileToggle.querySelector('.user-name');
-            const userDropdownContent = document.getElementById('user-dropdown-content');
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- LÓGICA DE LOGIN E UI ---
+        const loginContainer = document.getElementById('login-container');
+        const loginModal = document.getElementById('loginModal');
+        const closeModal = document.getElementById('closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('login-error');
+        const dropdownContent = document.getElementById('dropdown-content');
 
-            // Elementos do Modal de Login
-            const loginModal = document.getElementById('loginModal');
-            const closeButton = loginModal.querySelector('.close-button');
-            const loginForm = document.getElementById('loginForm');
-            const loginError = document.getElementById('login-error');
+        loginContainer.addEventListener('click', (e) => {
+            if (!localStorage.getItem('accessToken')) {
+                loginModal.style.display = 'block';
+            }
+        });
 
-            // --- Funções de Login/UI ---
-
-            // Abre o modal de login se o usuário clicar em "Login"
-            userProfileToggle.addEventListener('click', () => {
-                const token = localStorage.getItem('accessToken');
-                if (!token) { // Só abre o modal se não estiver logado
-                    loginModal.style.display = 'block';
-                }
-                // Se estiver logado, o dropdown já abre via CSS :hover
-            });
-
-            // Fecha o modal ao clicar no 'x'
-            closeButton.addEventListener('click', () => {
+        closeModal.addEventListener('click', () => { loginModal.style.display = 'none'; });
+        window.addEventListener('click', (event) => {
+            if (event.target == loginModal) {
                 loginModal.style.display = 'none';
-                loginError.style.display = 'none'; // Limpa mensagens de erro ao fechar
-                loginForm.reset(); // Reseta o formulário
-            });
+            }
+        });
 
-            // Fecha o modal ao clicar fora dele
-            window.addEventListener('click', (event) => {
-                if (event.target == loginModal) {
-                    loginModal.style.display = 'none';
-                    loginError.style.display = 'none';
-                    loginForm.reset();
-                }
-            });
-
-            // Lógica de Submissão do Formulário de Login
-            loginForm.addEventListener('submit', async (event) => {
+        loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             loginError.style.display = 'none';
             const email = event.target.email.value;
@@ -661,7 +656,6 @@
                 dropdownContent.innerHTML = '';
             }
         }
-
             // --- Lógica de Autocomplete (Mantida do seu código anterior) ---
             const professorInput = document.getElementById('professor_nome');
             const suggestionsContainer = document.getElementById('professor-suggestions');

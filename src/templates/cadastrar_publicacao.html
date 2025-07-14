@@ -73,22 +73,100 @@
         .status-message.success { background-color: #d1e7dd; color: #0f5132; }
         .status-message.error { background-color: #f8d7da; color: #842029; }
 
+                /* Estilos para o Dropdown do Usuário (se for usado aqui) */
+        .dropdown { 
+            position: relative; 
+            display: flex; /* Para alinhar o nome e o ícone de perfil */
+            align-items: center;
+            gap: 8px; /* Espaçamento entre o nome e o ícone */
+            cursor: pointer; /* Mãozinha em toda a área clicável do perfil */
+        }
+        .dropdown .user-profile-toggle { /* Nova classe para a área clicável */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .dropdown .user-profile-toggle:hover {
+            color: #0e5a8e;
+        }
+
+        .dropdown .dropdown-content { 
+            display: none; 
+            position: absolute; 
+            right: 0; 
+            background-color: #f9f9f9; 
+            min-width: 180px; 
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); 
+            z-index: 100; /* Alto z-index para ficar acima de outros elementos */
+            border-radius: 4px; 
+            top: calc(100% + 5px); /* Posiciona abaixo do item do menu */
+        }
+        .dropdown:hover .dropdown-content { display: block; } /* Ativa no hover do .dropdown */
+        .dropdown-content a { 
+            color: #333; 
+            padding: 12px 16px; 
+            text-decoration: none; 
+            display: block; 
+            white-space: nowrap; /* Impede quebras de linha em itens do menu */
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+                /* Estilos para o Modal de Login (copiado do seu outro CSS) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; } 
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loginForm button:hover { background-color: #004494; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+
     </style>
 </head>
 <body>
     <div class="page-wrapper">
-        <header class="header">
-             <nav class="navbar container">
-                <div class="logo">
-                    <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+        <div class="header">
+            <div class="navbar">
+                <div class="frame-1000000809">
+                    <a href="index.html">
+                        <img class="bras-o-da-uneb-1" src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" />
+                    </a>
                 </div>
                 <div class="menu">
-                    <a href="noticias.html">Notícias</a>
-                    <a href="eventos.html">Eventos</a>
-                    <a href="projetos.html">Projetos</a>
+                    <div class="blog">
+                        <a href="noticias.html" class="not-cias">Notícias</a>
+                    </div>
+                    <div class="projects">
+                        <a href="eventos.html" class="eventos">Eventos</a>
+                    </div>
+                    <div class="about">
+                        <a href="projetos.html" class="projetos">Projetos</a>
+                    </div>
+                        <div id="login-container" class="newsletter dropdown">
+                        <div class="login">Login</div>
+                        <img class="person" src="../static/images/person0.svg" />
+                        <div id="dropdown-content" class="dropdown-content"></div>
+                    </div>
                 </div>
-            </nav>
-        </header>
+            </div>
+        </div>
+
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" class="close-button">&times;</span>
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Entrar</button>
+                    <p id="login-error"></p>
+                </form>
+            </div>
+        </div>
 
         <main class="main-content">
             <div class="container form-section">
@@ -136,30 +214,122 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('publicacao-form');
-    const projetoSelect = document.getElementById('projeto');
-    const statusMessage = document.getElementById('status-message');
-    const formContainer = document.getElementById('form-container');
-    const apiUrlBase = 'http://127.0.0.1:8000';
-    const token = localStorage.getItem('accessToken');
+        const form = document.getElementById('publicacao-form');
+        const projetoSelect = document.getElementById('projeto');
+        const statusMessage = document.getElementById('status-message');
+        const formContainer = document.getElementById('form-container');
+        const apiUrlBase = 'http://127.0.0.1:8000';
+        const token = localStorage.getItem('accessToken');
 
-    // Função de guarda: verifica se o usuário está logado
-    function verificarLogin() {
-        if (!token) {
-            // Esconde o formulário e mostra uma mensagem de erro
-            formContainer.innerHTML = `
-                <h1>Acesso Negado</h1>
-                <p style="text-align: center;">Você precisa estar logado para acessar esta página.</p>
-                <p style="text-align: center; margin-top: 20px;"><a href="index.html" style="color: #0056b3;">Voltar para a página inicial</a></p>
-            `;
-            return false;
+        // --- LÓGICA DE LOGIN E UI ---
+        const loginContainer = document.getElementById('login-container');
+        const loginModal = document.getElementById('loginModal');
+        const closeModal = document.getElementById('closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('login-error');
+        const dropdownContent = document.getElementById('dropdown-content');
+
+        loginContainer.addEventListener('click', (e) => {
+            if (!localStorage.getItem('accessToken')) {
+                loginModal.style.display = 'block';
+            }
+        });
+
+        closeModal.addEventListener('click', () => { loginModal.style.display = 'none'; });
+        window.addEventListener('click', (event) => {
+            if (event.target == loginModal) {
+                loginModal.style.display = 'none';
+            }
+        });
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginError.style.display = 'none';
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            const formData = new URLSearchParams({ username: email, password: password });
+
+            try {
+                const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData,
+                });
+                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+                const tokenData = await loginResponse.json();
+                localStorage.setItem('accessToken', tokenData.access_token);
+
+                const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                });
+                if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
+
+                const meData = await userResponse.json(); // { "role": "...", "user_data": {...} }
+                
+                localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+                localStorage.setItem('userRole', meData.role);
+                
+                alert('Login realizado com sucesso!');
+                loginModal.style.display = 'none';
+                atualizarUIComLogin();
+            } catch (error) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userRole');
+                loginError.textContent = error.message;
+                loginError.style.display = 'block';
+            }
+        });
+        
+        function atualizarUIComLogin() {
+            const token = localStorage.getItem('accessToken');
+            const userDataString = localStorage.getItem('currentUser');
+            const userRole = localStorage.getItem('userRole'); // Pega o papel do usuário
+            const loginDiv = loginContainer.querySelector('.login');
+
+            if (token && userDataString && userRole) {
+                const user = JSON.parse(userDataString);
+                loginDiv.textContent = user.nome; 
+
+                let dropdownHtml = '';
+
+                if (userRole === 'administrador') {
+                    // Menu do Administrador
+                    dropdownHtml = `
+                        <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                        <a href="#" id="logoutBtn">Sair</a>
+                    `;
+                    } else {
+                        // Menu do Professor
+                        dropdownHtml = `
+                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                            <a href="meus_projetos.html">Meus Projetos</a>
+                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                            <a href="configuracoes.html">Configurações</a>
+                            <a href="#" id="logoutBtn">Sair</a>
+                        `;
+                    }
+
+                dropdownContent.innerHTML = dropdownHtml;
+
+                document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('userRole');
+                    alert('Você saiu da sua conta.');
+                    window.location.reload();
+                });
+            } else {
+                loginDiv.textContent = 'Login';
+                dropdownContent.innerHTML = '';
+            }
         }
-        return true;
-    }
 
     async function popularProjetos() {
-        if (!token) return; // Não faz nada se não estiver logado
-
         try {
             // Idealmente, você teria uma rota /projetos/meus-projetos
             // Por agora, usaremos a lista geral e filtramos (simulação)
@@ -217,10 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    atualizarUIComLogin();
     // Inicialização da página
-    if (verificarLogin()) {
-        popularProjetos();
-    }
+    popularProjetos();
 });
 </script>
 </body>
