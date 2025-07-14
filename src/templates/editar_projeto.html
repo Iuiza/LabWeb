@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/style.css">
+    <title>Editar Projeto - UNEB em Foco</title>
+    <style>
+        /* CSS Reset e Estilos Gerais (Reutilizados) */
+        body, h1, h2, h3, p, div, button, a, ul, li, form, label, input, select, textarea { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        body { background-color: #f8f9fa; color: #343a40; }
+        .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+        .main-content { flex-grow: 1; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .navbar .logo img { height: 45px; }
+        .navbar .menu { display: flex; gap: 30px; align-items: center; }
+        .navbar .menu a { font-weight: 500; color: #333; }
+        .footer { background-color: #fff; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; margin-top: 60px;}
+
+        /* Estilos do Formulário */
+        .form-section { padding: 40px 0; }
+        .form-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .form-container h1 { font-size: 2.5rem; font-weight: 700; color: #101828; margin-bottom: 30px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #343a40; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group select[multiple] { height: 150px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); }
+        .submit-button { width: 100%; padding: 15px; background-color: #0056b3; color: white; font-size: 1.1rem; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        .status-message { text-align: center; margin-top: 20px; padding: 10px; border-radius: 6px; }
+        .status-message.success { background-color: #d1e7dd; color: #0f5132; }
+        .status-message.error { background-color: #f8d7da; color: #842029; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+             <nav class="navbar container">
+                <div class="logo"><a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="UNEB" /></a></div>
+                <div class="menu"><a href="index.html">Início</a><a href="meus_projetos.html">Meus Projetos</a></div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="container form-section">
+                <div id="form-container" class="form-container">
+                    <h1>Editar Projeto</h1>
+                    <form id="edit-projeto-form">
+                        <div class="form-group">
+                            <label for="titulo">Título do Projeto</label>
+                            <input type="text" id="titulo" name="titulo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="descricao">Descrição</label>
+                            <textarea id="descricao" name="descricao"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="data_inicio">Data de Início</label>
+                            <input type="date" id="data_inicio" name="data_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="data_fim">Data de Término (opcional)</label>
+                            <input type="date" id="data_fim" name="data_fim">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" name="status" required>
+                                <option value="ATIVO">Ativo</option>
+                                <option value="INATIVO">Inativo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="publico">Público Alvo</label>
+                            <input type="text" id="publico" name="publico" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="curso_id">Curso</label>
+                            <select id="curso_id" name="curso_id" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="professor_ids_responsaveis">Professores Responsáveis (segure Ctrl ou Cmd para selecionar vários)</label>
+                            <select id="professor_ids_responsaveis" name="professor_ids_responsaveis" multiple required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="imagem_capa">Alterar Imagem de Capa (opcional)</label>
+                            <input type="file" id="imagem_capa" name="imagem_capa" accept="image/png, image/jpeg">
+                        </div>
+
+                        <button type="submit" class="submit-button">Salvar Alterações</button>
+                    </form>
+                    <div id="status-message" class="status-message" style="display: none;"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer"><div class="container"><p>© 2025 UNEB em Foco</p></div></footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('edit-projeto-form');
+    const statusMessage = document.getElementById('status-message');
+    const formContainer = document.getElementById('form-container');
+    const cursoSelect = document.getElementById('curso_id');
+    const professoresSelect = document.getElementById('professor_ids_responsaveis');
+    
+    const apiUrlBase = 'http://127.0.0.1:8000';
+    const token = localStorage.getItem('accessToken');
+    const projetoId = new URLSearchParams(window.location.search).get('id');
+
+    function formatDateForInput(isoDate) {
+        if (!isoDate) return '';
+        return new Date(isoDate).toISOString().split('T')[0];
+    }
+
+    async function carregarDadosIniciais() {
+        if (!token || !projetoId) {
+            formContainer.innerHTML = `<h1>Acesso Negado</h1><p style="text-align: center;">Não foi possível carregar os dados para edição. Verifique se está logado e se o projeto existe. <a href="meus_projetos.html">Voltar</a></p>`;
+            return;
+        }
+
+        try {
+            // Busca dados do projeto, dos cursos e dos professores em paralelo
+            const [projetoRes, cursosRes, professoresRes] = await Promise.all([
+                fetch(`${apiUrlBase}/projetos/exibir/${projetoId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${apiUrlBase}/cursos/listar`),
+                fetch(`${apiUrlBase}/professores/listar`)
+            ]);
+
+            if (!projetoRes.ok) throw new Error('Não foi possível carregar o projeto.');
+            if (!cursosRes.ok) throw new Error('Não foi possível carregar a lista de cursos.');
+            if (!professoresRes.ok) throw new Error('Não foi possível carregar a lista de professores.');
+
+            const projeto = await projetoRes.json();
+            const cursos = await cursosRes.json();
+            const professores = await professoresRes.json();
+
+            // Preenche o formulário
+            document.getElementById('titulo').value = projeto.titulo;
+            document.getElementById('descricao').value = projeto.descricao || '';
+            document.getElementById('data_inicio').value = formatDateForInput(projeto.data_inicio);
+            document.getElementById('data_fim').value = formatDateForInput(projeto.data_fim);
+            document.getElementById('status').value = projeto.status;
+            document.getElementById('publico').value = projeto.publico;
+
+            // Popula e seleciona o curso
+            cursos.forEach(curso => cursoSelect.add(new Option(curso.nome, curso.id)));
+            cursoSelect.value = projeto.curso.id;
+
+            // Popula e seleciona os professores
+            const idsProfessoresDoProjeto = new Set(projeto.professores.map(p => p.id));
+            professores.forEach(prof => {
+                const option = new Option(prof.nome, prof.id);
+                if (idsProfessoresDoProjeto.has(prof.id)) {
+                    option.selected = true;
+                }
+                professoresSelect.add(option);
+            });
+
+        } catch (error) {
+            statusMessage.textContent = `Erro ao carregar dados: ${error.message}`;
+            statusMessage.className = 'status-message error';
+            statusMessage.style.display = 'block';
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusMessage.style.display = 'none';
+
+        const formData = new FormData();
+        // Adiciona os campos de texto/select
+        formData.append('titulo', document.getElementById('titulo').value);
+        formData.append('descricao', document.getElementById('descricao').value);
+        formData.append('data_inicio', new Date(document.getElementById('data_inicio').value).toISOString());
+        const dataFim = document.getElementById('data_fim').value;
+        if(dataFim) formData.append('data_fim', new Date(dataFim).toISOString());
+        formData.append('status', document.getElementById('status').value);
+        formData.append('publico', document.getElementById('publico').value);
+        formData.append('curso_id', document.getElementById('curso_id').value);
+        
+        // Adiciona os múltiplos professores selecionados
+        for (const option of document.getElementById('professor_ids_responsaveis').options) {
+            if (option.selected) {
+                formData.append('professor_ids_responsaveis', option.value);
+            }
+        }
+        
+        // Adiciona a imagem apenas se uma nova foi selecionada
+        const imagemInput = document.getElementById('imagem_capa');
+        if (imagemInput.files.length > 0) {
+            formData.append('imagem_capa', imagemInput.files[0]);
+        }
+        
+        try {
+            const response = await fetch(`${apiUrlBase}/projetos/editar/${projetoId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Ocorreu um erro ao atualizar o projeto.');
+            }
+
+            const projetoAtualizado = await response.json();
+            statusMessage.textContent = `Projeto "${projetoAtualizado.titulo}" atualizado com sucesso!`;
+            statusMessage.className = 'status-message success';
+            statusMessage.style.display = 'block';
+
+        } catch (error) {
+            statusMessage.textContent = error.message;
+            statusMessage.className = 'status-message error';
+            statusMessage.style.display = 'block';
+        }
+    });
+    
+    // Inicialização da página
+    carregarDadosIniciais();
+});
+</script>
+</body>
+</html>

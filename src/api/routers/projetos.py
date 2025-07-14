@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, delete
 from sqlalchemy.orm import selectinload
 
 from .. import schemas
 from ..dependencies import get_db_session, get_current_active_user
 from enums.status import ProjetoStatusEnum
-from models.db import Projeto, Professor, Administrador, ProjetoProfessor, Curso, Departamento
+from models.db import Projeto, Professor, Administrador, ProjetoProfessor, Curso, Departamento, Publicacao
 
 router = APIRouter()
 
@@ -272,12 +272,95 @@ async def editar_projeto(
     # Para a resposta, recarregamos com todas as informações
     query_final = (
         select(Projeto)
-        .where(Projeto.id == projeto_a_editar.id)
+        .where(Projeto.id == projeto_id)
         .options(
-            selectinload(Projeto.curso),
-            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+            selectinload(Projeto.curso)
+                .selectinload(Curso.departamento)
+                .selectinload(Departamento.campus),
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            selectinload(Projeto.publicacoes)
         )
     )
-    projeto_final = (await session.execute(query_final)).scalar_one()
+    projeto_atualizado = (await session.execute(query_final)).scalar_one()
+    return projeto_atualizado
 
-    return projeto_final
+@router.get(
+    "/me",
+    response_model=schemas.PaginatedProjetoResponse,
+    summary="Listar os projetos do usuário autenticado"
+)
+async def listar_meus_projetos(
+    current_user: Professor = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    skip: int = 0,
+    limit: int = 8
+):
+    """
+    Lista os projetos gerenciados pelo professor atualmente logado,
+    garantindo que todos os relacionamentos aninhados sejam carregados.
+    """
+    project_ids_subquery = (
+        select(ProjetoProfessor.projeto_id)
+        .where(ProjetoProfessor.professor_id == current_user.id)
+    )
+
+    count_query = select(func.count(Projeto.id)).where(Projeto.id.in_(project_ids_subquery))
+    total_result = await session.execute(count_query)
+    total = total_result.scalar_one()
+
+    # --- CORREÇÃO PRINCIPAL AQUI ---
+    query = (
+        select(Projeto)
+        .where(Projeto.id.in_(project_ids_subquery))
+        .order_by(Projeto.data_inicio.desc())
+        .offset(skip)
+        .limit(limit)
+        .options(
+            # Garante que toda a cadeia de curso -> departamento -> campus seja carregada
+            selectinload(Projeto.curso)
+                .selectinload(Curso.departamento)
+                .selectinload(Departamento.campus),
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            selectinload(Projeto.publicacoes)
+        )
+    )
+
+    result = await session.execute(query)
+    projetos = result.scalars().unique().all()
+
+    return {"total": total, "items": projetos}
+
+
+@router.delete("/deletar/{projeto_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def deletar_projeto(
+    projeto_id: int,
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    Exclui um projeto.
+    O professor só pode excluir projetos dos quais é responsável.
+    O administrador pode excluir qualquer projeto."""
+
+    projeto = await session.get(Projeto, projeto_id, options=[selectinload(Projeto.link_professores)])
+    if not projeto:
+        raise HTTPException(status_code=404, detail="Projeto não encontrado.")
+
+    is_admin = isinstance(current_user, Administrador)
+    is_owner = False
+    if isinstance(current_user, Professor):
+        professor_ids_do_projeto = {link.professor_id for link in projeto.link_professores}
+        if current_user.id in professor_ids_do_projeto:
+            is_owner = True
+
+    if not is_owner and not is_admin:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para excluir este projeto.")
+
+    # Primeiro, exclua as associações e publicações relacionadas
+    await session.execute(delete(Publicacao).where(Publicacao.projeto_id == projeto_id))
+    await session.execute(delete(ProjetoProfessor).where(ProjetoProfessor.projeto_id == projeto_id))
+
+    await session.delete(projeto)
+    await session.commit()
+
+    return None
