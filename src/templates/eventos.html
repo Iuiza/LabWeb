@@ -14,7 +14,7 @@
 
         /* --- Estilos Globais e de Layout (consistentes entre as páginas) --- */
         body { font-family: sans-serif; background-color: #ffffff; }
-        
+
         .header {
             background-color: #ffffff; /* Fundo branco para o novo header */
             padding: 15px 0;
@@ -647,9 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             userDropdownContent.innerHTML = `
                 <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                <a href="meus_projetos.html">Meus Projetos</a>
                 <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                <a href="#">Minhas Publicações</a>
-                <a href="#">Configurações</a>
+                <a href="minhas_publicacoes.htm">Minhas Publicações</a>
+                <a href="configuracoes.html">Configurações</a>
                 <a href="#" id="logoutBtn">Sair</a>
             `;
             document.getElementById('logoutBtn').addEventListener('click', (e) => {

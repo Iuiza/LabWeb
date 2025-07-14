@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/styles/style.css">
+    <title>Minhas Publicações - UNEB em Foco</title>
+    <style>
+        /* CSS Reset */
+        body, h1, h2, h3, p, div, button, a, ul, li { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Estilos Gerais */
+        body { background-color: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+        .main-content { flex-grow: 1; }
+        
+        /* Estilos do Header */
+        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+        .navbar .logo img { height: 45px; }
+        .navbar .menu { display: flex; gap: 30px; align-items: center; }
+        .navbar .menu a { font-weight: 500; color: #333; }
+
+        /* Conteúdo da Página */
+        .page-header { padding: 40px 0; text-align: center; border-bottom: 1px solid #e9ecef; margin-bottom: 40px; }
+        .page-title { font-size: 2.8rem; font-weight: 700; color: #101828; }
+
+        #publicacoes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .publication-card {
+            background: #fff; border: 1px solid #e9ecef; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            display: flex; flex-direction: column; height: 100%;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .publication-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .publication-card img { width: 100%; height: 200px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px;}
+        .publication-card .card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .publication-card .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: #101828; }
+        .publication-card .card-date { font-size: 0.9rem; color: #6c757d; margin-bottom: 15px; }
+        .publication-card .card-actions { margin-top: auto; padding-top: 15px; border-top: 1px solid #f1f3f5; display: flex; gap: 10px; }
+        .publication-card .action-btn { padding: 8px 12px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; font-size: 0.9rem; }
+        .btn-edit { background-color: #e6f7ff; color: #0056b3; }
+        .btn-edit:hover { background-color: #b3e0ff; }
+        .btn-delete { background-color: #fff5f5; color: #c53030; }
+        .btn-delete:hover { background-color: #fed7d7; }
+        
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; padding-bottom: 40px; }
+        .pagination button { cursor: pointer; padding: 10px 16px; border: 1px solid #ccc; border-radius: 6px; background: white; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination button.active { background: #0056b3; color: white; border-color: #0056b3; }
+
+        .status-message { text-align: center; font-size: 1.1rem; color: #555; padding: 40px; }
+        .status-message a { color: #0056b3; font-weight: 600; }
+        
+        .footer { background-color: #f9fafb; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="header">
+             <nav class="navbar container">
+                <div class="logo">
+                    <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                </div>
+                <div class="menu">
+                    <a href="index.html">Início</a>
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                </div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Minhas Publicações</h1>
+            </div>
+
+            <div class="container">
+                <div id="publicacoes-grid">
+                    <p class="status-message">Carregando suas publicações...</p>
+                </div>
+                <div id="pagination-container" class="pagination"></div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <p>© 2025 UNEB em Foco</p>
+            </div>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const gridContainer = document.getElementById('publicacoes-grid');
+    const paginationContainer = document.getElementById('pagination-container');
+    const apiUrlBase = 'http://127.0.0.1:8000';
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+        gridContainer.innerHTML = '<p class="status-message">Você precisa estar logado para ver suas publicações. <a href="index.html">Voltar para o início</a></p>';
+        return;
+    }
+
+    let currentPage = 1;
+    const itemsPerPage = 9;
+
+    function formatarData(dataIso) {
+        if (!dataIso) return "Data não informada";
+        const data = new Date(dataIso);
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        return data.toLocaleDateString('pt-BR', options);
+    }
+
+    function criarCard(publicacao) {
+        const card = document.createElement('div');
+        card.className = 'publication-card';
+
+        card.innerHTML = `
+            <a href="detalhes.html?id=${publicacao.id}" style="text-decoration: none; color: inherit;">
+                <img src="${publicacao.path_imagem || '../static/images/image-placeholder.png'}" alt="Imagem de ${publicacao.titulo}">
+            </a>
+            <div class="card-content">
+                <p class="card-date">${formatarData(publicacao.data_publicacao)}</p>
+                <h3 class="card-title">${publicacao.titulo}</h3>
+                <div class="card-actions">
+                    <button class="action-btn btn-edit" data-id="${publicacao.id}">Editar</button>
+                    <button class="action-btn btn-delete" data-id="${publicacao.id}">Excluir</button>
+                </div>
+            </div>
+        `;
+        return card;
+    }
+    
+    // Adicionando os event listeners após a criação dos cards
+    function adicionarEventListeners() {
+        document.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                window.location.href = `editar_publicacao.html?id=${id}`;
+            });
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const id = e.target.dataset.id;
+                if (!confirm('Tem certeza que deseja excluir esta publicação? Esta ação não pode ser desfeita.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${apiUrlBase}/postagens/deletar/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Falha ao excluir a publicação.');
+                    }
+                    
+                    alert('Publicação excluída com sucesso!');
+                    carregarMinhasPublicacoes(currentPage);
+
+                } catch (error) {
+                    console.error("Erro ao excluir:", error);
+                    alert(error.message);
+                }
+            });
+        });
+    }
+
+    function renderizarPaginacao(totalItems, currentPage) {
+        paginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        if (totalPages <= 1) return;
+
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = `&larr;`;
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => carregarMinhasPublicacoes(currentPage - 1));
+        paginationContainer.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            if (i === currentPage) pageButton.classList.add('active');
+            pageButton.addEventListener('click', () => carregarMinhasPublicacoes(i));
+            paginationContainer.appendChild(pageButton);
+        }
+        
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = `&rarr;`;
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => carregarMinhasPublicacoes(currentPage + 1));
+        paginationContainer.appendChild(nextButton);
+    }
+
+    async function carregarMinhasPublicacoes(page = 1) {
+        currentPage = page;
+        const skip = (page - 1) * itemsPerPage;
+        const apiUrl = `${apiUrlBase}/postagens/me?skip=${skip}&limit=${itemsPerPage}`;
+
+        gridContainer.innerHTML = '<p class="status-message">Carregando...</p>';
+
+        try {
+            const response = await fetch(apiUrl, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Falha ao buscar suas publicações.');
+            }
+            
+            const data = await response.json();
+            
+            gridContainer.innerHTML = '';
+            if (data.publicacoes.length === 0) {
+                gridContainer.innerHTML = '<p class="status-message">Você ainda não criou nenhuma publicação.</p>';
+            } else {
+                data.publicacoes.forEach(pub => {
+                    gridContainer.appendChild(criarCard(pub));
+                });
+                adicionarEventListeners(); // Adiciona os listeners depois que os botões existem no DOM
+            }
+            
+            renderizarPaginacao(data.total, currentPage);
+
+        } catch (error) {
+            console.error(error);
+            gridContainer.innerHTML = `<p class="status-message">${error.message}</p>`;
+        }
+    }
+
+    carregarMinhasPublicacoes(1);
+});
+</script>
+</body>
+</html>

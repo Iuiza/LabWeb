@@ -149,3 +149,65 @@ async def editar_publicacao(
     await session.commit()
     await session.refresh(publicacao, ["professor", "projeto"])
     return publicacao
+
+@router.get(
+    "/me",
+    response_model=schemas.PaginatedPublicacaoResponse,
+    summary="Listar as publicações do usuário autenticado"
+)
+async def listar_minhas_publicacoes(
+    current_user: Professor = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    skip: int = 0,
+    limit: int = 9
+):
+    """
+    Lista as publicações criadas pelo professor atualmente logado.
+    """
+    # Consulta para contar o total de publicações do usuário
+    count_query = (
+        select(func.count(Publicacao.id))
+        .where(Publicacao.professor_id == current_user.id)
+    )
+    total_result = await session.execute(count_query)
+    total = total_result.scalar_one()
+
+    # Consulta paginada para buscar as publicações do usuário
+    query = (
+        select(Publicacao)
+        .where(Publicacao.professor_id == current_user.id)
+        .order_by(Publicacao.data_publicacao.desc())
+        .offset(skip)
+        .limit(limit)
+        .options(selectinload(Publicacao.professor), selectinload(Publicacao.projeto))
+    )
+    result = await session.execute(query)
+    publicacoes = result.scalars().all()
+
+    return {"total": total, "publicacoes": publicacoes}
+
+@router.delete("/deletar/{publicacao_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def deletar_publicacao(
+    publicacao_id: int,
+    current_user: Union[Professor, Administrador] = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session)
+):
+    """
+    Exclui uma publicação.
+        
+    O professor só pode excluir suas próprias publicações.
+    O administrador pode excluir qualquer publicação."""
+    publicacao = await session.get(Publicacao, publicacao_id)
+    if not publicacao:
+        raise HTTPException(status_code=404, detail="Publicação não encontrada.")
+
+    # Lógica de autorização
+    is_owner = isinstance(current_user, Professor) and publicacao.professor_id == current_user.id
+    is_admin = isinstance(current_user, Administrador)
+
+    if not is_owner and not is_admin:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para excluir esta publicação.")
+
+    await session.delete(publicacao)
+    await session.commit()
+    return None # Retorna uma resposta 204 No Content
