@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.orm import selectinload
 
 from .. import schemas
@@ -127,44 +127,40 @@ async def criar_novo_projeto(
 
     return projeto_final
 
-
 @router.get(
     "/listar",
-    response_model=List[schemas.ProjetoResponse],
-    status_code=status.HTTP_200_OK,
+    response_model=schemas.PaginatedProjetoResponse,
     summary="Listar todos os projetos de extensão"
 )
 async def listar_projetos(
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db_session),
+    skip: int = 0,
+    limit: int = 8 # Itens por página, ex: 8 para um grid 4x2
 ):
     """
-    Lista todos os projetos de extensão cadastrados na plataforma.
-    Esta rota é pública e não requer autenticação.
+    Lista todos os projetos de extensão de forma paginada.
     """
+    # Consulta para contar o total de projetos
+    count_query = select(func.count(Projeto.id))
+    total_result = await session.execute(count_query)
+    total = total_result.scalar_one()
+
+    # Consulta para buscar a página atual de projetos
     query = (
         select(Projeto)
         .order_by(Projeto.data_inicio.desc())
+        .offset(skip)
+        .limit(limit)
         .options(
-            # Corrente principal: Carregue o 'curso' e, a partir dele, o 'departamento'.
-            selectinload(Projeto.curso).selectinload(Curso.departamento),
-            
-            # Carregamento do relacionamento muitos-para-muitos com professores.
+            selectinload(Projeto.curso).selectinload(Curso.departamento).selectinload(Departamento.campus),
             selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
-            
-            # Carregamento das publicações relacionadas.
             selectinload(Projeto.publicacoes)
         )
     )
-
     result = await session.execute(query)
-    
-    # Adicionar .unique() é uma boa prática para evitar duplicatas do objeto principal (Projeto)
-    # que podem ocorrer devido aos joins do eager loading.
     projetos = result.scalars().unique().all()
 
-    # Agora, quando o FastAPI for serializar a resposta, todos os dados
-    # (projeto, curso, departamento, professores, etc.) já estarão em memória.
-    return projetos
+    return {"total": total, "items": projetos}
 
 @router.get(
     "/exibir/{projeto_id}",

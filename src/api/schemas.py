@@ -123,6 +123,10 @@ class ProjetoResponse(ProjetoBase):
     class Config:
         from_attributes = True
 
+class PaginatedProjetoResponse(BaseModel):
+    total: int
+    items: List[ProjetoResponse]
+
 # ---- Publicação (Schemas Completos) ----
 class PublicacaoBase(BaseModel):
     titulo: str
