@@ -106,10 +106,10 @@ class Professor(BaseModel):
     __tablename__ = "professor"
 
     id: Mapped[big_intpk]
-    nome: Mapped[str]
-    email: Mapped[str]
-    senha: Mapped[str]
-    path_imagem: Mapped[str | None]
+    nome: Mapped[str] = mapped_column(VARCHAR(255))
+    email: Mapped[str] = mapped_column(VARCHAR(255))
+    senha: Mapped[str] = mapped_column(VARCHAR(255))
+    path_imagem: Mapped[str | None] = mapped_column(VARCHAR(255))
     cpf: Mapped[str] = mapped_column(VARCHAR(11))
 
     link_projetos: Mapped[list["ProjetoProfessor"]] = relationship(back_populates="professor")
@@ -138,13 +138,13 @@ class Projeto(BaseModel):
     __tablename__ = "projeto"
 
     id: Mapped[big_intpk]
-    titulo: Mapped[str]
+    titulo: Mapped[str] = mapped_column(VARCHAR(255))
     descricao: Mapped[text | None]
-    path_imagem: Mapped[str]
+    path_imagem: Mapped[str] = mapped_column(VARCHAR(255))
     data_inicio: Mapped[timestamp]
     data_fim: Mapped[timestamp | None]
     status: Mapped[ProjetoStatusEnum] = mapped_column(default=ProjetoStatusEnum.ATIVO)
-    publico: Mapped[str]
+    publico: Mapped[str] = mapped_column(VARCHAR(255))
     curso_id: Mapped[int] = mapped_column(ForeignKey("curso.id"))
 
     link_professores: Mapped[list["ProjetoProfessor"]] = relationship(back_populates="projeto")
@@ -173,7 +173,7 @@ class Curso(BaseModel):
     __tablename__ = "curso"
 
     id: Mapped[big_intpk]
-    nome: Mapped[str]
+    nome: Mapped[str] = mapped_column(VARCHAR(255))
     departamento_id: Mapped[int] = mapped_column(ForeignKey("departamento.id"))
 
     projetos: Mapped[list["Projeto"]] = relationship(back_populates="curso")
@@ -199,7 +199,7 @@ class Departamento(BaseModel):
     __tablename__ = "departamento"
 
     id: Mapped[big_intpk]
-    nome: Mapped[str]
+    nome: Mapped[str] = mapped_column(VARCHAR(255))
     campus_id: Mapped[int] = mapped_column(ForeignKey("campus.id"))
 
     cursos: Mapped[list["Curso"]] = relationship(back_populates="departamento")
@@ -225,7 +225,7 @@ class Campus(BaseModel):
     __tablename__ = "campus"
 
     id: Mapped[big_intpk]
-    nome: Mapped[str]
+    nome: Mapped[str] = mapped_column(VARCHAR(255))
 
     departamentos: Mapped[list["Departamento"]] = relationship(back_populates="campus")
 
@@ -249,11 +249,11 @@ class Publicacao(BaseModel):
     __tablename__ = "publicacao"
 
     id: Mapped[big_intpk]
-    titulo: Mapped[str]
+    titulo: Mapped[str] = mapped_column(VARCHAR(255))
     conteudo: Mapped[longtext]
     tipo: Mapped[PublicacaoTipoEnum]
     data_publicacao: Mapped[datetime_default_now]
-    path_imagem: Mapped[str]
+    path_imagem: Mapped[str] = mapped_column(VARCHAR(255))
     professor_id: Mapped[int] = mapped_column(ForeignKey("professor.id"))
     projeto_id: Mapped[int] = mapped_column(ForeignKey("projeto.id"))
 
@@ -282,9 +282,9 @@ class Administrador(BaseModel):
     __tablename__ = "administrador"
 
     id: Mapped[big_intpk]
-    nome: Mapped[str]
-    email: Mapped[str]
-    senha: Mapped[str]
+    nome: Mapped[str] = mapped_column(VARCHAR(255))
+    email: Mapped[str] = mapped_column(VARCHAR(255))
+    senha: Mapped[str] = mapped_column(VARCHAR(255))
 
     @staticmethod
     async def get_or_create(session: AsyncSession, nome: str, email: str, senha: str):
