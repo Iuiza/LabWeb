@@ -447,6 +447,52 @@
         .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
         .pagination button.active { background: #0056b3; color: white; border-color: #0056b3; }
 
+        /* No seu <style> ou arquivo .css */
+
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 8px; 
+            margin-top: 40px; 
+        }
+
+        .pagination button, .pagination span {
+            cursor: pointer;
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination span {
+            border: none;
+            cursor: default;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #f0f0f0;
+            border-color: #adadad;
+        }
+
+        /* Estilo para o botão da página atual */
+        .pagination button.active {
+            background-color: #0056b3;
+            color: white;
+            border-color: #0056b3;
+            font-weight: bold;
+            cursor: default;
+        }
+
+        /* Estilo para botões desativados (primeira/última página) */
+        .pagination button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #e9ecef;
+        }
+
         /* Responsividade */
         @media (max-width: 992px) { /* Tablets e menores */
             .navbar .left-section {
@@ -590,12 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiUrlBase = 'http://127.0.0.1:8000';
 
     let currentPage = 1;
-    const itemsPerPage = 8; // 4x2 grid
-
-    // Elementos da Barra de Pesquisa e Filtro
-    const searchForm = document.getElementById('search-form');
-    const searchInput = document.getElementById('search-input');
-    const projectFilterSelect = document.getElementById('project-filter');
+    const itemsPerPage = 8;
 
     // --- Elementos do Header/Login ---
     const userProfileToggle = document.getElementById('user-profile-toggle');
@@ -606,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('login-error');
 
-    // Abre o modal de login se o usuário clicar em "Login"
+    // Abre o modal de login
     userProfileToggle.addEventListener('click', () => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
@@ -614,14 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Fecha o modal ao clicar no 'x'
+    // Fecha o modal
     closeButton.addEventListener('click', () => {
         loginModal.style.display = 'none';
         loginError.style.display = 'none';
         loginForm.reset();
     });
 
-    // Fecha o modal ao clicar fora dele
     window.addEventListener('click', (event) => {
         if (event.target == loginModal) {
             loginModal.style.display = 'none';
@@ -632,103 +672,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica de Submissão do Formulário de Login
     loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            loginError.style.display = 'none';
-            const email = event.target.email.value;
-            const password = event.target.password.value;
-            const formData = new URLSearchParams({ username: email, password: password });
-
-            try {
-                const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData,
-                });
-                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
-                const tokenData = await loginResponse.json();
-                localStorage.setItem('accessToken', tokenData.access_token);
-
-                const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                });
-                if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
-
-                const meData = await userResponse.json(); // { "role": "...", "user_data": {...} }
-                
-                localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
-                localStorage.setItem('userRole', meData.role);
-                
-                alert('Login realizado com sucesso!');
-                loginModal.style.display = 'none';
-                atualizarUIComLogin();
-            } catch (error) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('userRole');
-                loginError.textContent = error.message;
-                loginError.style.display = 'block';
-            }
-        });
+        event.preventDefault();
+        loginError.style.display = 'none';
         
-        function atualizarUIComLogin() {
-            const token = localStorage.getItem('accessToken');
-            const userDataString = localStorage.getItem('currentUser');
-            const userRole = localStorage.getItem('userRole'); // Pega o papel do usuário
-            const loginDiv = loginContainer.querySelector('.login');
+        // CORRIGIDO: O nome do campo no HTML é 'username'
+        const email = event.target.username.value;
+        const password = event.target.password.value;
+        const formData = new URLSearchParams({ username: email, password: password });
 
-            if (token && userDataString && userRole) {
-                const user = JSON.parse(userDataString);
-                loginDiv.textContent = user.nome; 
+        try {
+            const loginResponse = await fetch(`${apiUrlBase}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData,
+            });
+            if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+            const tokenData = await loginResponse.json();
+            localStorage.setItem('accessToken', tokenData.access_token);
 
-                let dropdownHtml = '';
+            const userResponse = await fetch(`${apiUrlBase}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+            });
+            if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
 
-                if (userRole === 'administrador') {
-                    // Menu do Administrador
-                    dropdownHtml = `
-                        <a href="cadastrar_professor.html">Cadastrar Professor</a>
-                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                        <a href="#" id="logoutBtn">Sair</a>
-                    `;
-                    } else {
-                        // Menu do Professor
-                        dropdownHtml = `
-                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                            <a href="meus_projetos.html">Meus Projetos</a>
-                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
-                            <a href="configuracoes.html">Configurações</a>
-                            <a href="#" id="logoutBtn">Sair</a>
-                        `;
-                    }
-
-                dropdownContent.innerHTML = dropdownHtml;
-
-                document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('userRole');
-                    alert('Você saiu da sua conta.');
-                    window.location.reload();
-                });
-            } else {
-                loginDiv.textContent = 'Login';
-                dropdownContent.innerHTML = '';
-            }
+            const meData = await userResponse.json();
+            localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+            localStorage.setItem('userRole', meData.role);
+            
+            alert('Login realizado com sucesso!');
+            loginModal.style.display = 'none';
+            atualizarUIComLogin();
+        } catch (error) {
+            localStorage.clear(); // Limpa tudo em caso de erro
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
         }
-    // --- FIM Elementos do Header/Login ---
+    });
+        
+    function atualizarUIComLogin() {
+        const token = localStorage.getItem('accessToken');
+        const userDataString = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
+
+        if (!userNameSpan) return;
+
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            userNameSpan.textContent = user.nome; 
+
+            let dropdownHtml = '';
+            if (userRole === 'administrador') {
+                dropdownHtml = `<a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="#" id="logoutBtn">Sair</a>`; // Simplificado
+            } else {
+                dropdownHtml = `<a href="meus_projetos.html">Meus Projetos</a><a href="#" id="logoutBtn">Sair</a>`; // Simplificado
+            }
+            userDropdownContent.innerHTML = dropdownHtml;
+
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                alert('Você saiu da sua conta.');
+                window.location.reload();
+            });
+        } else {
+            userNameSpan.textContent = 'Login';
+            userDropdownContent.innerHTML = '';
+        }
+    }
 
     function criarCardProjeto(projeto) {
         const cardLink = document.createElement('a');
         cardLink.href = `detalhes_projeto.html?id=${projeto.id}`;
         cardLink.className = 'card-link';
-
         const card = document.createElement('div');
         card.className = 'projeto-card';
         
-        const imagemSrc = projeto.path_imagem || '../static/images/image-placeholder.png';
-        const conteudoTruncado = projeto.descricao.length > 150 ? projeto.descricao.substring(0, 150) + '...' : projeto.descricao;
+        const imagemSrc = projeto.path_imagem ? `${projeto.path_imagem}` : '../static/images/image-placeholder.png';
+        const conteudoTruncado = projeto.descricao && projeto.descricao.length > 150 ? projeto.descricao.substring(0, 150) + '...' : projeto.descricao || "";
+        
+        // CORRIGIDO: Código mais seguro para evitar erros
+        const nomeCurso = (projeto.curso && projeto.curso.nome) ? projeto.curso.nome : 'Sem Categoria';
 
         card.innerHTML = `
             <div class="image-container">
@@ -738,10 +761,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3 class="card-title">${projeto.titulo}</h3>
                 <p class="supporting-text">${conteudoTruncado}</p>
                 <div class="categories">
-                    <div class="badge">${projeto.curso.nome}</div>
+                    <div class="badge">${nomeCurso}</div>
                 </div>
-            </div>
-        `;
+            </div>`;
         cardLink.appendChild(card);
         return cardLink;
     }
@@ -751,15 +773,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (totalPages <= 1) return;
 
-        // Lógica de renderização dos botões de paginação
+        const criarBotao = (texto, pageNum, isDisabled = false, isActive = false) => {
+            const button = document.createElement('button');
+            button.textContent = texto;
+            button.disabled = isDisabled;
+            if (isActive) button.classList.add('active');
+            button.addEventListener('click', () => !isActive && carregarProjetos(pageNum));
+            return button;
+        };
+
+        paginationContainer.appendChild(criarBotao('Anterior', currentPage - 1, currentPage === 1));
+
+        const pageWindow = 2;
+        let lastPageDisplayed = 0;
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - pageWindow && i <= currentPage + pageWindow)) {
+                if (i > lastPageDisplayed + 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    paginationContainer.appendChild(ellipsis);
+                }
+                paginationContainer.appendChild(criarBotao(i, i, false, i === currentPage));
+                lastPageDisplayed = i;
+            }
+        }
+        
+        // CORRIGIDO: Esta linha foi movida para DENTRO da função.
+        paginationContainer.appendChild(criarBotao('Próximo', currentPage + 1, currentPage === totalPages));
     }
 
     async function carregarProjetos(page = 1) {
         currentPage = page;
         const skip = (page - 1) * itemsPerPage;
         const apiUrl = `${apiUrlBase}/projetos/listar?skip=${skip}&limit=${itemsPerPage}`;
-
-        projetosContainer.innerHTML = '<p>Carregando projetos...</p>';
+        projetosContainer.innerHTML = '<p class="status-message">Carregando projetos...</p>';
 
         try {
             const response = await fetch(apiUrl);
@@ -767,23 +814,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             projetosContainer.innerHTML = '';
-            if (data.items.length === 0) {
-                projetosContainer.innerHTML = '<p>Nenhum projeto encontrado.</p>';
+            if (!data.items || data.items.length === 0) {
+                projetosContainer.innerHTML = '<p class="status-message">Nenhum projeto encontrado.</p>';
+            } else {
+                data.items.forEach(projeto => {
+                    projetosContainer.appendChild(criarCardProjeto(projeto));
+                });
             }
-
-            data.items.forEach(projeto => {
-                projetosContainer.appendChild(criarCardProjeto(projeto));
-            });
-            
             renderizarPaginacao(data.total, currentPage);
         } catch (error) {
             console.error("Erro ao carregar projetos:", error);
-            projetosContainer.innerHTML = '<p>Não foi possível carregar os projetos.</p>';
+            projetosContainer.innerHTML = '<p class="status-message error">Não foi possível carregar os projetos. Verifique o console para mais detalhes.</p>';
         }
     }
 
+    // Inicializa a UI e carrega os projetos
     atualizarUIComLogin();
-    carregarProjetos(1);
+    carregarProjetos(1); // Inicia carregando a primeira página
 });
 </script>
 </body>
