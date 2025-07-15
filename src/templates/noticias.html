@@ -631,52 +631,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         function atualizarUIComLogin() {
-            const token = localStorage.getItem('accessToken');
-            const userDataString = localStorage.getItem('currentUser');
-            const userRole = localStorage.getItem('userRole'); // Pega o papel do usuário
-            const loginDiv = loginContainer.querySelector('.login');
+        const token = localStorage.getItem('accessToken');
+        const userDataString = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
 
-            if (token && userDataString && userRole) {
-                const user = JSON.parse(userDataString);
-                loginDiv.textContent = user.nome; 
-
-                let dropdownHtml = '';
-
-                if (userRole === 'administrador') {
-                    // Menu do Administrador
-                    dropdownHtml = `
-                        <a href="cadastrar_professor.html">Cadastrar Professor</a>
-                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                        <a href="#" id="logoutBtn">Sair</a>
-                    `;
-                    } else {
-                        // Menu do Professor
-                        dropdownHtml = `
-                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                            <a href="meus_projetos.html">Meus Projetos</a>
-                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
-                            <a href="configuracoes.html">Configurações</a>
-                            <a href="#" id="logoutBtn">Sair</a>
-                        `;
-                    }
-
-                dropdownContent.innerHTML = dropdownHtml;
-
-                document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('userRole');
-                    alert('Você saiu da sua conta.');
-                    window.location.reload();
-                });
-            } else {
-                loginDiv.textContent = 'Login';
-                dropdownContent.innerHTML = '';
-            }
+        // NOTA: Certifique-se de que userNameSpan não seja nulo.
+        if (!userNameSpan) {
+            console.error("Elemento '.user-name' não encontrado dentro de '#user-profile-toggle'");
+            return;
         }
+
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            // CORRIGIDO: Usando 'userNameSpan' em vez da 'loginDiv' que não existia.
+            userNameSpan.textContent = user.nome; 
+
+            let dropdownHtml = '';
+
+            if (userRole === 'administrador') {
+                dropdownHtml = `
+                    <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="#" id="logoutBtn">Sair</a>
+                `;
+            } else { // Menu do Professor
+                dropdownHtml = `
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="meus_projetos.html">Meus Projetos</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                    <a href="configuracoes.html">Configurações</a>
+                    <a href="#" id="logoutBtn">Sair</a>
+                `;
+            }
+
+            // CORRIGIDO: Usando 'userDropdownContent' em vez de 'dropdownContent'.
+            userDropdownContent.innerHTML = dropdownHtml;
+
+            // Adiciona o listener para o botão de logout que acabou de ser criado
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userRole');
+                alert('Você saiu da sua conta.');
+                window.location.reload();
+            });
+        } else {
+            // CORRIGIDO: Usando 'userNameSpan' para redefinir o texto para "Login".
+            userNameSpan.textContent = 'Login';
+            // CORRIGIDO: Usando 'userDropdownContent' para limpar o menu dropdown.
+            userDropdownContent.innerHTML = '';
+        }
+    }
     // --- FIM Elementos do Header/Login ---
 
     function formatarData(dataIso) {
