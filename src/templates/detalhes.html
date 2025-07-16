@@ -42,8 +42,9 @@
         .menu {
             display: flex;
             gap: 25px; /* Espaçamento entre os itens do menu */
+            align-items: center; /* Alinha verticalmente os itens do menu */
         }
-
+        
         .menu a, .menu div {
             font-weight: 500;
             transition: color 0.3s ease;
@@ -135,23 +136,6 @@
         /* --- Mantendo os estilos do outro arquivo para consistência --- */
         a.card-link { color: inherit; text-decoration: none; display: block; height: 100%; }
 
-        /* Estilos para o Modal de Login */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
-        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; } /* Adicionado cursor: pointer */
-        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
-        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
-        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
-        #loginForm button:hover { background-color: #004494; }
-        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
-        
-        /* Estilos para o Dropdown do Usuário */
-        .dropdown { position: relative; }
-        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; }
-        .dropdown-content a:hover { background-color: #f1f1f1; }
-
         /* Estilos para a Paginação */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px; padding-bottom: 24px;}
         .pagination button { cursor: pointer; padding: 8px 14px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-size: 1rem; }
@@ -221,6 +205,58 @@
         }
         .filtros-container { display: flex; gap: 16px; flex-wrap: wrap; }
         .filtros-container select { padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; flex-grow: 1; }
+        /* Estilos para o Dropdown do Usuário (Nome do Usuário/Login) */
+        .dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .dropdown .user-profile-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .dropdown .user-profile-toggle:hover {
+            color: #2980b9;
+        }
+        .user-name {
+            font-size: 1.15rem;
+            white-space: nowrap;
+        }
+
+        .dropdown .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-radius: 4px;
+            top: calc(100% + 5px);
+        }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            white-space: nowrap;
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        /* Estilos para o Modal de Login */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; position: relative; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #loginForm button:hover { background-color: #004494; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+
     </style>
 </head>
 <body>
@@ -234,9 +270,12 @@
                     <div class="blog"><a href="noticias.html" class="not-cias">Notícias</a></div>
                     <div class="projects"><a href="eventos.html" class="eventos">Eventos</a></div>
                     <div class="about"><a href="projetos.html" class="projetos">Projetos</a></div>
-                    <div class="newsletter">
-                        <div class="login" id="login-button">Login</div>
-                        <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                     <div class="newsletter dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span> <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -274,50 +313,151 @@
         </div>
     </div>
 
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label>
+                <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mainContent = document.getElementById('main-content');
             const loginButton = document.getElementById('login-button');
+            const userProfileToggle = document.getElementById('user-profile-toggle');
+            const userNameSpan = userProfileToggle.querySelector('.user-name');
+            const userDropdownContent = document.getElementById('user-dropdown-content');
             const loginModal = document.getElementById('loginModal');
-            const closeButton = document.querySelector('.close-button');
+            const closeButton = loginModal.querySelector('.close-button');
+            const loginForm = document.getElementById('loginForm');
+            const loginError = document.getElementById('login-error');
 
-            // Funções para o modal de login
-            if (loginButton) {
-                loginButton.addEventListener('click', () => {
+        // Abre o modal de login se o usuário clicar em "Login"
+            userProfileToggle.addEventListener('click', () => {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
                     loginModal.style.display = 'block';
-                });
-            }
-
-            if (closeButton) {
-                closeButton.addEventListener('click', () => {
-                    loginModal.style.display = 'none';
-                });
-            }
-
-            window.addEventListener('click', (event) => {
-                if (event.target == loginModal) {
-                    loginModal.style.display = 'none';
                 }
             });
 
-            // Lógica de autenticação (simplificada para o exemplo)
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    // Aqui você faria a chamada real à API de login
-                    const username = loginForm.username.value;
-                    const password = loginForm.password.value;
+            // Fecha o modal ao clicar no 'x'
+            closeButton.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+                loginError.style.display = 'none';
+                loginForm.reset();
+            });
 
-                    // Exemplo de validação simples
-                    if (username === 'user' && password === 'pass') {
-                        alert('Login bem-sucedido!');
+            // Fecha o modal ao clicar fora dele
+            window.addEventListener('click', (event) => {
+                if (event.target == loginModal) {
+                    loginModal.style.display = 'none';
+                    loginError.style.display = 'none';
+                    loginForm.reset();
+                }
+            });
+
+            // Lógica de Submissão do Formulário de Login
+            loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    loginError.style.display = 'none';
+                    const email = event.target.email.value;
+                    const password = event.target.password.value;
+                    const formData = new URLSearchParams({ username: email, password: password });
+
+                    try {
+                        const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData,
+                        });
+                        if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+                        const tokenData = await loginResponse.json();
+                        localStorage.setItem('accessToken', tokenData.access_token);
+
+                        const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
+                            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                        });
+                        if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
+
+                        const meData = await userResponse.json(); // { "role": "...", "user_data": {...} }
+                        
+                        localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+                        localStorage.setItem('userRole', meData.role);
+                        
+                        alert('Login realizado com sucesso!');
                         loginModal.style.display = 'none';
-                        // Redirecionar ou atualizar a UI para estado logado
-                    } else {
-                        document.getElementById('login-error').style.display = 'block';
+                        atualizarUIComLogin();
+                    } catch (error) {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('userRole');
+                        loginError.textContent = error.message;
+                        loginError.style.display = 'block';
                     }
                 });
+                
+                function atualizarUIComLogin() {
+                const token = localStorage.getItem('accessToken');
+                const userDataString = localStorage.getItem('currentUser');
+                const userRole = localStorage.getItem('userRole');
+
+                // NOTA: Certifique-se de que userNameSpan não seja nulo.
+                if (!userNameSpan) {
+                    console.error("Elemento '.user-name' não encontrado dentro de '#user-profile-toggle'");
+                    return;
+                }
+
+                if (token && userDataString && userRole) {
+                    const user = JSON.parse(userDataString);
+                    // CORRIGIDO: Usando 'userNameSpan' em vez da 'loginDiv' que não existia.
+                    userNameSpan.textContent = user.nome; 
+
+                    let dropdownHtml = '';
+
+                    if (userRole === 'administrador') {
+                        dropdownHtml = `
+                            <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                            <a href="#" id="logoutBtn">Sair</a>
+                        `;
+                    } else { // Menu do Professor
+                        dropdownHtml = `
+                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                            <a href="meus_projetos.html">Meus Projetos</a>
+                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                            <a href="configuracoes.html">Configurações</a>
+                            <a href="#" id="logoutBtn">Sair</a>
+                        `;
+                    }
+
+                    // CORRIGIDO: Usando 'userDropdownContent' em vez de 'dropdownContent'.
+                    userDropdownContent.innerHTML = dropdownHtml;
+
+                    // Adiciona o listener para o botão de logout que acabou de ser criado
+                    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('userRole');
+                        alert('Você saiu da sua conta.');
+                        window.location.reload();
+                    });
+                } else {
+                    // CORRIGIDO: Usando 'userNameSpan' para redefinir o texto para "Login".
+                    userNameSpan.textContent = 'Login';
+                    // CORRIGIDO: Usando 'userDropdownContent' para limpar o menu dropdown.
+                    userDropdownContent.innerHTML = '';
+                }
             }
 
             /**
@@ -388,6 +528,7 @@
             }
 
             // Inicia o processo
+            atualizarUIComLogin();
             carregarDetalhes();
         });
     </script>
