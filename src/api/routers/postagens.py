@@ -159,23 +159,37 @@ async def listar_minhas_publicacoes(
     current_user: Professor = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db_session),
     skip: int = 0,
-    limit: int = 9
+    limit: int = 9,
+    search_query: str | None = None  # 1. Parâmetro de busca opcional adicionado
 ):
     """
-    Lista as publicações criadas pelo professor atualmente logado.
+    Lista as publicações do professor logado.
+    Se 'search_query' for fornecido, filtra adicionalmente pelo título ou conteúdo.
     """
-    # Consulta para contar o total de publicações do usuário
-    count_query = (
-        select(func.count(Publicacao.id))
-        .where(Publicacao.professor_id == current_user.id)
-    )
+    # 2. Lista de filtros a serem aplicados
+    # Começa com o filtro obrigatório: publicações que pertencem ao usuário logado.
+    filters = [Publicacao.professor_id == current_user.id]
+
+    # 3. Se um termo de busca for enviado, adiciona um novo filtro à lista
+    if search_query:
+        search_filter = or_(
+            Publicacao.titulo.ilike(f"%{search_query}%"),
+            # IMPORTANTE: Altere 'Publicacao.conteudo' se o nome do campo de texto for outro
+            Publicacao.conteudo.ilike(f"%{search_query}%")
+        )
+        filters.append(search_filter)
+
+    # 4. Aplica TODOS os filtros da lista às consultas
+    
+    # Consulta para contar o total de publicações (já com os filtros)
+    count_query = select(func.count(Publicacao.id)).where(*filters) # O '*' desempacota a lista
     total_result = await session.execute(count_query)
     total = total_result.scalar_one()
 
-    # Consulta paginada para buscar as publicações do usuário
+    # Consulta paginada para buscar as publicações (também com todos os filtros)
     query = (
         select(Publicacao)
-        .where(Publicacao.professor_id == current_user.id)
+        .where(*filters) # Aplica os filtros aqui
         .order_by(Publicacao.data_publicacao.desc())
         .offset(skip)
         .limit(limit)
