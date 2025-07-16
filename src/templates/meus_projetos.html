@@ -4,92 +4,70 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Meus Projetos - UNEB em Foco</title>
     <style>
-        /* CSS Reset */
-        body, h1, h2, h3, p, div, button, a, ul, li { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        a { text-decoration: none; color: inherit; }
-
-        /* Estilos Gerais */
-        body { background-color: #f8f9fa; }
+        /* --- CSS Reset e Estilos Globais --- */
+        a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex-grow: 1; }
-        
-        /* Header */
-        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+
+        /* --- Header, Navbar e Barra de Pesquisa --- */
+        .header { background-color: #ffffff; padding: 15px 0; border-bottom: 1px solid #eee; }
         .navbar { display: flex; justify-content: space-between; align-items: center; }
-        .navbar .logo img { height: 45px; }
-        .navbar .menu { display: flex; gap: 30px; align-items: center; }
-        .navbar .menu a { font-weight: 500; color: #333; }
-        
-        /* Conteúdo da Página */
+        .navbar .left-section { display: flex; align-items: center; gap: 20px; }
+        .navbar img { height: 50px; }
+
+        .search-bar { position: relative; display: flex; align-items: center; border: 1px solid #ddd; border-radius: 25px; padding: 8px 15px; background-color: #f9f9f9; width: 300px; transition: all 0.3s ease; }
+        .search-bar:focus-within { border-color: #2980b9; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15); }
+        .search-bar input { flex-grow: 1; font-size: 0.95rem; background: none; outline: none; }
+        .search-bar button { cursor: pointer; font-size: 1.1rem; transition: color 0.2s ease; }
+        .search-bar button:hover { color: #2980b9; }
+
+        .menu { display: flex; gap: 25px; align-items: center; }
+        .menu a { font-weight: 500; transition: color 0.3s ease; }
+        .menu a:hover { color: #2980b9; }
+        .menu a.active { color: #2980b9; font-weight: 600; }
+
+        /* --- Dropdown do Usuário --- */
+        .dropdown { position: relative; }
+        .dropdown .user-profile-toggle { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; transition: color 0.3s ease; }
+        .dropdown .user-profile-toggle:hover { color: #2980b9; }
+        .user-name { font-size: 1rem; }
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 4px; top: calc(100% + 10px); }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { padding: 12px 16px; display: block; white-space: nowrap; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown .person {
+            height: 24px; /* Ajuste este valor como preferir */
+            width: auto;  /* Mantém a proporção da imagem */
+        }
+
+        /* --- Modal de Login --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 10px; width: 80%; max-width: 400px; position: relative; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+
+        /* --- Conteúdo Específico da Página "Meus Projetos" --- */
         .page-header { padding: 40px 0; text-align: center; border-bottom: 1px solid #e9ecef; margin-bottom: 40px; }
         .page-title { font-size: 2.8rem; font-weight: 700; color: #101828; }
 
-        #projetos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 24px;
-            align-items: stretch;
-        }
-
-        .project-card {
-            background: #fff; 
-            border: 1px solid #e9ecef; 
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            display: flex; 
-            flex-direction: column; 
-            height: 100%;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-        }
-        .project-card img { 
-            width: 100%; 
-            height: 220px; 
-            object-fit: cover; 
-            border-top-left-radius: 8px; 
-            border-top-right-radius: 8px; 
-        }
-        .project-card .card-content { 
-            padding: 20px; 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-        }
+        #projetos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; align-items: stretch; }
+        .project-card { background: #fff; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; height: 100%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .project-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .project-card img { width: 100%; height: 220px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .project-card .card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .project-card .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; }
-        .project-card .card-status { 
-            display: inline-block; 
-            padding: 4px 10px; 
-            border-radius: 16px; 
-            font-size: 0.85rem; 
-            margin-bottom: 15px; 
-            text-transform: capitalize; 
-            font-weight: 500;
-        }
+        .project-card .card-status { display: inline-block; padding: 4px 10px; border-radius: 16px; font-size: 0.85rem; margin-bottom: 15px; text-transform: capitalize; font-weight: 500; }
         .status-ativo { background-color: #d1e7dd; color: #0f5132; }
         .status-inativo { background-color: #e2e3e5; color: #41464b; }
-        .project-card .card-actions { 
-            margin-top: auto; 
-            padding-top: 15px; 
-            border-top: 1px solid #f1f3f5; 
-            display: flex; 
-            gap: 10px; 
-        }
-        .project-card .action-btn { 
-            padding: 8px 12px; 
-            border: none; 
-            border-radius: 6px; 
-            font-weight: 500; 
-            cursor: pointer; 
-            transition: background-color 0.2s; 
-            font-size: 0.9rem;
-        }
+        .project-card .card-actions { margin-top: auto; padding-top: 15px; border-top: 1px solid #f1f3f5; display: flex; gap: 10px; }
+        .project-card .action-btn { padding: 8px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; font-size: 0.9rem; }
         .btn-edit { background-color: #e6f7ff; color: #0056b3; }
         .btn-edit:hover { background-color: #b3e0ff; }
         .btn-delete { background-color: #fff5f5; color: #c53030; }
@@ -103,20 +81,37 @@
         .status-message { text-align: center; font-size: 1.1rem; color: #555; padding: 40px; }
         .status-message a { color: #0056b3; font-weight: 600; }
         
-        .footer { background-color: #f9fafb; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; }
+        /* --- Footer --- */
+        .footer { background-color: #ffffff; border-top: 1px solid #e7e7e7; padding: 20px 0; text-align: center; margin-top: 40px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer .menu { display: flex; gap: 20px; }
+        .footer .menu div { font-weight: 400; color: #555; }
     </style>
 </head>
 <body>
     <div class="page-wrapper">
         <header class="header">
-             <nav class="navbar container">
-                <div class="logo"><a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="UNEB" /></a></div>
-                <div class="menu">
-                    <a href="index.html">Início</a>
-                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+            <div class="navbar container">
+                <div class="left-section">
+                    <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                    <form id="search-form" class="search-bar">
+                        <input type="text" id="search-input" placeholder="Buscar projetos...">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
                 </div>
-            </nav>
+                <div class="menu">
+                    <a href="noticias.html">Notícias</a>
+                    <a href="eventos.html">Eventos</a>
+                    <a href="projetos.html" class="active">Projetos</a>
+                    <div class="dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span>
+                            <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <main class="main-content">
@@ -132,20 +127,155 @@
         
         <footer class="footer">
             <div class="container">
-                <p>© 2025 UNEB em Foco</p>
+                <div>© 2025 UNEB em Foco</div>
+                <div class="menu">
+                    <div>Twitter</div>
+                    <div>LinkedIn</div>
+                    <div>Email</div>
+                    <div>Instagram</div>
+                </div>
             </div>
         </footer>
     </div>
 
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label>
+                <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const gridContainer = document.getElementById('projetos-grid');
-    const paginationContainer = document.getElementById('pagination-container');
     const apiUrlBase = 'http://127.0.0.1:8000';
     const token = localStorage.getItem('accessToken');
 
+    // =================================================================
+    // INÍCIO: LÓGICA DO HEADER, LOGIN E PESQUISA (CÓDIGO ADICIONADO)
+    // =================================================================
+    const userProfileToggle = document.getElementById('user-profile-toggle');
+    const userNameSpan = userProfileToggle.querySelector('.user-name');
+    const userDropdownContent = document.getElementById('user-dropdown-content');
+    const loginModal = document.getElementById('loginModal');
+    const closeButton = loginModal.querySelector('.close-button');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('login-error');
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+
+    // Abre o modal de login se o usuário não estiver logado
+    userProfileToggle.addEventListener('click', () => {
+        if (!localStorage.getItem('accessToken')) {
+            loginModal.style.display = 'block';
+        }
+    });
+
+    // Fecha o modal
+    const closeModal = () => {
+        loginModal.style.display = 'none';
+        loginError.style.display = 'none';
+        loginForm.reset();
+    };
+    closeButton.addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => {
+        if (event.target == loginModal) closeModal();
+    });
+
+    // Lógica de Submissão do Formulário de Login
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        loginError.style.display = 'none';
+        const formData = new URLSearchParams({
+            username: event.target.username.value,
+            password: event.target.password.value
+        });
+        try {
+            const loginResponse = await fetch(`${apiUrlBase}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData,
+            });
+            if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+            const tokenData = await loginResponse.json();
+            localStorage.setItem('accessToken', tokenData.access_token);
+            
+            const userResponse = await fetch(`${apiUrlBase}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+            });
+            if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
+            const meData = await userResponse.json();
+            localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+            localStorage.setItem('userRole', meData.role);
+            
+            alert('Login realizado com sucesso!');
+            window.location.reload(); // Recarrega a página para aplicar o estado de login
+        } catch (error) {
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        }
+    });
+        
+    // Atualiza a UI (Header) com base no estado de login
+    function atualizarUIComLogin() {
+        const userDataString = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
+
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            userNameSpan.textContent = user.nome.split(' ')[0]; // Mostra só o primeiro nome
+
+            let dropdownHtml = '';
+            if (userRole === 'administrador') {
+                dropdownHtml = `
+                    <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="#" id="logoutBtn">Sair</a>`;
+            } else { // Professor
+                dropdownHtml = `
+                    <a href="meus_projetos.html">Meus Projetos</a>
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="configuracoes.html">Configurações</a>
+                    <a href="#" id="logoutBtn">Sair</a>`;
+            }
+            userDropdownContent.innerHTML = dropdownHtml;
+
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                alert('Você saiu da sua conta.');
+                window.location.href = 'index.html';
+            });
+        } else {
+            userNameSpan.textContent = 'Login';
+            userDropdownContent.innerHTML = '';
+        }
+    }
+
+    const gridContainer = document.getElementById('projetos-grid');
+    const paginationContainer = document.getElementById('pagination-container');
+    
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const searchTerm = searchInput.value.trim();
+        // Em vez de redirecionar, chama a função para carregar os projetos NESTA PÁGINA com o filtro
+        carregarMeusProjetos(1, searchTerm);
+    });
+
+    // Verifica se o usuário tem token para acessar esta página
     if (!token) {
-        gridContainer.innerHTML = '<p class="status-message">Acesso negado. Por favor, faça o login para ver seus projetos. <a href="index.html">Voltar para o início</a></p>';
+        gridContainer.innerHTML = '<p class="status-message">Acesso negado. Por favor, faça o login. <a href="index.html">Voltar</a></p>';
+        document.querySelector('.page-header').style.display = 'none';
         return;
     }
 
@@ -171,108 +301,96 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
-    function adicionarEventListeners() {
+    function adicionarEventListenersCards() {
         document.querySelectorAll('.btn-edit').forEach(button => {
             button.addEventListener('click', e => {
-                const id = e.target.dataset.id;
-                window.location.href = `editar_projeto.html?id=${id}`;
+                window.location.href = `editar_projeto.html?id=${e.target.dataset.id}`;
             });
         });
 
         document.querySelectorAll('.btn-delete').forEach(button => {
             button.addEventListener('click', async e => {
                 const id = e.target.dataset.id;
-                if (!confirm('Tem certeza que deseja excluir este projeto? Todas as publicações associadas também serão removidas.')) {
-                    return;
-                }
-                
-                try {
-                    const response = await fetch(`${apiUrlBase}/projetos/deletar/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.detail || 'Falha ao excluir o projeto.');
+                if (confirm('Tem certeza que deseja excluir este projeto?')) {
+                    try {
+                        const response = await fetch(`${apiUrlBase}/projetos/deletar/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (!response.ok) throw new Error((await response.json()).detail);
+                        alert('Projeto excluído com sucesso!');
+                        carregarMeusProjetos(currentPage);
+                    } catch (error) {
+                        alert(`Erro ao excluir: ${error.message}`);
                     }
-                    alert('Projeto excluído com sucesso!');
-                    carregarMeusProjetos(currentPage);
-                } catch (error) {
-                    console.error('Erro ao excluir projeto:', error);
-                    alert(error.message);
                 }
             });
         });
     }
 
-    function renderizarPaginacao(totalItems, currentPage) {
+ function renderizarPaginacao(totalItems, currentPage, searchTerm = '') {
         paginationContainer.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (totalPages <= 1) return;
 
-        const prevButton = document.createElement('button');
-        prevButton.innerHTML = `&larr; Anterior`;
-        prevButton.disabled = currentPage === 1;
-        prevButton.addEventListener('click', () => carregarMeusProjetos(currentPage - 1));
-        paginationContainer.appendChild(prevButton);
+        const createButton = (text, page, isDisabled = false, isActive = false) => {
+            const button = document.createElement('button');
+            button.innerHTML = text;
+            button.disabled = isDisabled;
+            if(isActive) button.classList.add('active');
+            // MODIFICADO: Ao clicar, passa a página E o termo da busca atual
+            button.addEventListener('click', () => carregarMeusProjetos(page, searchTerm));
+            return button;
+        };
 
+        paginationContainer.appendChild(createButton('&larr; Anterior', currentPage - 1, currentPage === 1));
         for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            if (i === currentPage) {
-                pageButton.classList.add('active');
-            }
-            pageButton.addEventListener('click', () => carregarMeusProjetos(i));
-            paginationContainer.appendChild(pageButton);
+            paginationContainer.appendChild(createButton(i, i, false, i === currentPage));
         }
-        
-        const nextButton = document.createElement('button');
-        nextButton.innerHTML = `Próxima &rarr;`;
-        nextButton.disabled = currentPage === totalPages;
-        nextButton.addEventListener('click', () => carregarMeusProjetos(currentPage + 1));
-        paginationContainer.appendChild(nextButton);
+        paginationContainer.appendChild(createButton('Próxima &rarr;', currentPage + 1, currentPage === totalPages));
     }
 
-    async function carregarMeusProjetos(page = 1) {
+    // MODIFICADO: Função principal agora aceita e usa o termo da busca
+    async function carregarMeusProjetos(page = 1, searchTerm = '') {
         currentPage = page;
         const skip = (page - 1) * itemsPerPage;
-        const apiUrl = `${apiUrlBase}/projetos/me?skip=${skip}&limit=${itemsPerPage}`;
+        
+        // Constrói a URL da API, adicionando o search_query se ele existir
+        let apiUrl = `${apiUrlBase}/projetos/me?skip=${skip}&limit=${itemsPerPage}`;
+        if (searchTerm) {
+            apiUrl += `&search_query=${encodeURIComponent(searchTerm)}`;
+        }
 
-        gridContainer.innerHTML = '<p class="status-message">Carregando seus projetos...</p>';
+        gridContainer.innerHTML = '<p class="status-message">Buscando projetos...</p>';
+        // Mantém o termo no campo de busca para o usuário saber o que foi buscado
+        searchInput.value = searchTerm;
 
         try {
-            const response = await fetch(apiUrl, { 
-                headers: { 'Authorization': `Bearer ${token}` } 
-            });
-            if (response.status === 403) {
-                 gridContainer.innerHTML = `<p class="status-message">Você não tem permissão para ver esta página.</p>`;
-                 return;
-            }
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Não foi possível buscar seus projetos.');
-            }
+            const response = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error((await response.json()).detail || 'Falha ao buscar projetos.');
             
             const data = await response.json();
             
             gridContainer.innerHTML = '';
             if (data.items.length === 0) {
-                gridContainer.innerHTML = '<p class="status-message">Você ainda não tem projetos cadastrados.</p>';
+                gridContainer.innerHTML = searchTerm 
+                    ? `<p class="status-message">Nenhum projeto seu foi encontrado para o termo "${searchTerm}".</p>`
+                    : '<p class="status-message">Você ainda não tem projetos cadastrados.</p>';
             } else {
-                data.items.forEach(proj => {
-                    gridContainer.appendChild(criarCardProjeto(proj));
-                });
-                adicionarEventListeners();
+                data.items.forEach(proj => gridContainer.appendChild(criarCardProjeto(proj)));
+                adicionarEventListenersCards();
             }
-            
-            renderizarPaginacao(data.total, currentPage);
+            // MODIFICADO: Passa o termo da busca para a paginação
+            renderizarPaginacao(data.total, currentPage, searchTerm);
         } catch (error) {
-            console.error(error);
-            gridContainer.innerHTML = `<p class="status-message">${error.message}</p>`;
+            gridContainer.innerHTML = `<p class="status-message">Erro: ${error.message}</p>`;
         }
     }
 
-    carregarMeusProjetos(1);
+
+    // --- CHAMADAS INICIAIS ---
+    atualizarUIComLogin(); // Configura o header
+    carregarMeusProjetos(1, ''); // Carrega o conteúdo principal da página
 });
 </script>
 </body>

@@ -309,33 +309,44 @@ async def listar_meus_projetos(
     current_user: Professor = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_db_session),
     skip: int = 0,
-    limit: int = 8
+    limit: int = 8,
+    search_query: str | None = None  # Parâmetro de busca opcional
 ):
     """
-    Lista os projetos gerenciados pelo professor atualmente logado,
-    garantindo que todos os relacionamentos aninhados sejam carregados.
+    Lista os projetos do professor logado.
+    Se 'search_query' for fornecido, filtra adicionalmente pelo título ou descrição.
     """
+    # Filtro obrigatório: projetos pertencentes ao usuário atual
     project_ids_subquery = (
         select(ProjetoProfessor.projeto_id)
         .where(ProjetoProfessor.professor_id == current_user.id)
     )
+    
+    # Lista de filtros a serem aplicados. Começa com o filtro obrigatório.
+    filters = [Projeto.id.in_(project_ids_subquery)]
 
-    count_query = select(func.count(Projeto.id)).where(Projeto.id.in_(project_ids_subquery))
+    # Se um termo de busca for fornecido, adiciona o filtro de busca à lista
+    if search_query:
+        search_filter = or_(
+            Projeto.titulo.ilike(f"%{search_query}%"),
+            Projeto.descricao.ilike(f"%{search_query}%")
+        )
+        filters.append(search_filter)
+
+    # Aplica todos os filtros coletados na consulta de contagem
+    count_query = select(func.count(Projeto.id)).where(*filters) # O '*' desempacota a lista
     total_result = await session.execute(count_query)
     total = total_result.scalar_one()
 
-    # --- CORREÇÃO PRINCIPAL AQUI ---
+    # Aplica todos os filtros na consulta principal
     query = (
         select(Projeto)
-        .where(Projeto.id.in_(project_ids_subquery))
+        .where(*filters) # O '*' desempacota a lista
         .order_by(Projeto.data_inicio.desc())
         .offset(skip)
         .limit(limit)
         .options(
-            # Garante que toda a cadeia de curso -> departamento -> campus seja carregada
-            selectinload(Projeto.curso)
-                .selectinload(Curso.departamento)
-                .selectinload(Departamento.campus),
+            selectinload(Projeto.curso).selectinload(Curso.departamento).selectinload(Departamento.campus),
             selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
             selectinload(Projeto.publicacoes)
         )
