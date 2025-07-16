@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from sqlalchemy import select, and_, func, delete
+from sqlalchemy import select, and_, func, delete, or_
 from sqlalchemy.orm import selectinload
 
 from .. import schemas
@@ -135,19 +135,35 @@ async def criar_novo_projeto(
 async def listar_projetos(
     session: AsyncSession = Depends(get_db_session),
     skip: int = 0,
-    limit: int = 8 # Itens por página, ex: 8 para um grid 4x2
+    limit: int = 8,
+    search_query: str | None = None  # 1. Adicionar o parâmetro de busca (opcional)
 ):
     """
     Lista todos os projetos de extensão de forma paginada.
+    Se 'search_query' for fornecido, filtra os projetos pelo título ou descrição.
     """
-    # Consulta para contar o total de projetos
+    # 2. Construir a base da consulta (para itens e contagem)
+    query = select(Projeto)
     count_query = select(func.count(Projeto.id))
+
+    # 3. Se um termo de busca for fornecido, adicionar um filtro (cláusula WHERE)
+    if search_query:
+        search_filter = or_(
+            Projeto.titulo.ilike(f"%{search_query}%"),
+            Projeto.descricao.ilike(f"%{search_query}%")
+        )
+        # Aplicando o filtro à consulta principal
+        query = query.where(search_filter)
+        # E TAMBÉM à consulta de contagem (MUITO IMPORTANTE para a paginação correta)
+        count_query = count_query.where(search_filter)
+
+    # Executa a consulta de contagem já com o filtro (se houver)
     total_result = await session.execute(count_query)
     total = total_result.scalar_one()
 
-    # Consulta para buscar a página atual de projetos
+    # Executa a consulta principal com filtro, ordenação e paginação
     query = (
-        select(Projeto)
+        query
         .order_by(Projeto.data_inicio.desc())
         .offset(skip)
         .limit(limit)

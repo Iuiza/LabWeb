@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return cardLink;
     }
 
-    function renderizarPaginacao(totalItems, currentPage) {
+    function renderizarPaginacao(totalItems, currentPage, searchTerm = '') { // Adiciona o parâmetro searchTerm
         paginationContainer.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (totalPages <= 1) return;
@@ -789,7 +789,8 @@ document.addEventListener('DOMContentLoaded', () => {
             button.textContent = texto;
             button.disabled = isDisabled;
             if (isActive) button.classList.add('active');
-            button.addEventListener('click', () => !isActive && carregarProjetos(pageNum));
+            // Ao clicar, chama carregarProjetos com a nova página E o termo de busca atual
+            button.addEventListener('click', () => !isActive && carregarProjetos(pageNum, searchTerm));
             return button;
         };
 
@@ -809,14 +810,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // CORRIGIDO: Esta linha foi movida para DENTRO da função.
         paginationContainer.appendChild(criarBotao('Próxima', currentPage + 1, currentPage === totalPages));
     }
 
-    async function carregarProjetos(page = 1) {
+    async function carregarProjetos(page = 1, searchTerm = '') { // Adiciona o parâmetro searchTerm
         currentPage = page;
         const skip = (page - 1) * itemsPerPage;
-        const apiUrl = `${apiUrlBase}/projetos/listar?skip=${skip}&limit=${itemsPerPage}`;
+        
+        // Constrói a URL da API, adicionando o termo de busca se ele existir
+        let apiUrl = `${apiUrlBase}/projetos/listar?skip=${skip}&limit=${itemsPerPage}`;
+        if (searchTerm) {
+            apiUrl += `&search_query=${encodeURIComponent(searchTerm)}`;
+        }
+
         projetosContainer.innerHTML = '<p class="status-message">Carregando projetos...</p>';
 
         try {
@@ -832,16 +838,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     projetosContainer.appendChild(criarCardProjeto(projeto));
                 });
             }
-            renderizarPaginacao(data.total, currentPage);
+            renderizarPaginacao(data.total, currentPage, searchTerm); // Passa o searchTerm para a paginação também
         } catch (error) {
             console.error("Erro ao carregar projetos:", error);
             projetosContainer.innerHTML = '<p class="status-message error">Não foi possível carregar os projetos. Verifique o console para mais detalhes.</p>';
         }
     }
 
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Evita que a página recarregue ao enviar o form
+        const searchTerm = searchInput.value.trim(); // Pega o texto e remove espaços extras
+        carregarProjetos(1, searchTerm); // Chama a função para carregar os projetos com o termo da busca
+    });
+
     // Inicializa a UI e carrega os projetos
     atualizarUIComLogin();
-    carregarProjetos(1); // Inicia carregando a primeira página
+    carregarProjetos(1, ''); // Inicia carregando a primeira página
 });
 </script>
 </body>
