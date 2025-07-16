@@ -4,86 +4,111 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Minhas Publicações - UNEB em Foco</title>
     <style>
-        /* CSS Reset */
-        body, h1, h2, h3, p, div, button, a, ul, li { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        a { text-decoration: none; color: inherit; }
-
-        /* Estilos Gerais */
-        body { background-color: #f8f9fa; }
+        /* --- CSS Reset e Estilos Globais --- */
+        a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex-grow: 1; }
-        
-        /* Estilos do Header */
-        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
-        .navbar { display: flex; justify-content: space-between; align-items: center; }
-        .navbar .logo img { height: 45px; }
-        .navbar .menu { display: flex; gap: 30px; align-items: center; }
-        .navbar .menu a { font-weight: 500; color: #333; }
 
-        /* Conteúdo da Página */
+        /* --- Header, Navbar e Barra de Pesquisa --- */
+        .header { background-color: #ffffff; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+        .navbar .left-section { display: flex; align-items: center; gap: 20px; }
+        .navbar img { height: 50px; }
+
+        .search-bar { position: relative; display: flex; align-items: center; border: 1px solid #ddd; border-radius: 25px; padding: 8px 15px; background-color: #f9f9f9; width: 300px; transition: all 0.3s ease; }
+        .search-bar:focus-within { border-color: #2980b9; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15); }
+        .search-bar input { flex-grow: 1; font-size: 0.95rem; background: none; outline: none; }
+        .search-bar button { cursor: pointer; font-size: 1.1rem; transition: color 0.2s ease; }
+        .search-bar button:hover { color: #2980b9; }
+
+        .menu { display: flex; gap: 25px; align-items: center; }
+        .menu a { font-weight: 500; transition: color 0.3s ease; }
+        .menu a:hover { color: #2980b9; }
+        .menu a.active { color: #2980b9; font-weight: 600; }
+
+        /* --- Dropdown do Usuário --- */
+        .dropdown { position: relative; }
+        .dropdown .user-profile-toggle { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; transition: color 0.3s ease; }
+        .dropdown .user-profile-toggle:hover { color: #2980b9; }
+        .user-name { font-size: 1rem; }
+        .dropdown .person { height: 24px; width: auto; } /* Tamanho do ícone de usuário */
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 4px; top: calc(100% + 10px); }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { padding: 12px 16px; display: block; white-space: nowrap; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+        /* --- Modal de Login --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 10px; width: 80%; max-width: 400px; position: relative; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+
+        /* --- Conteúdo Específico da Página --- */
         .page-header { padding: 40px 0; text-align: center; border-bottom: 1px solid #e9ecef; margin-bottom: 40px; }
         .page-title { font-size: 2.8rem; font-weight: 700; color: #101828; }
+        #publicacoes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; align-items: stretch; }
 
-        #publicacoes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 24px;
-            align-items: stretch;
-        }
-
-        .publication-card {
-            background: #fff; border: 1px solid #e9ecef; border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            display: flex; flex-direction: column; height: 100%;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
+        .publication-card { background: #fff; border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; height: 100%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .publication-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
         .publication-card img { width: 100%; height: 200px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px;}
         .publication-card .card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .publication-card .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: #101828; }
         .publication-card .card-date { font-size: 0.9rem; color: #6c757d; margin-bottom: 15px; }
         .publication-card .card-actions { margin-top: auto; padding-top: 15px; border-top: 1px solid #f1f3f5; display: flex; gap: 10px; }
-        .publication-card .action-btn { padding: 8px 12px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; font-size: 0.9rem; }
+        .publication-card .action-btn { padding: 8px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; font-size: 0.9rem; }
         .btn-edit { background-color: #e6f7ff; color: #0056b3; }
-        .btn-edit:hover { background-color: #b3e0ff; }
         .btn-delete { background-color: #fff5f5; color: #c53030; }
-        .btn-delete:hover { background-color: #fed7d7; }
         
         .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; padding-bottom: 40px; }
         .pagination button { cursor: pointer; padding: 10px 16px; border: 1px solid #ccc; border-radius: 6px; background: white; }
         .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
         .pagination button.active { background: #0056b3; color: white; border-color: #0056b3; }
-
         .status-message { text-align: center; font-size: 1.1rem; color: #555; padding: 40px; }
-        .status-message a { color: #0056b3; font-weight: 600; }
         
-        .footer { background-color: #f9fafb; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; }
+        /* --- Footer --- */
+        .footer { background-color: #ffffff; border-top: 1px solid #e7e7e7; padding: 20px 0; text-align: center; margin-top: 40px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer .menu { display: flex; gap: 20px; }
+        .footer .menu div { font-weight: 400; color: #555; }
     </style>
 </head>
 <body>
     <div class="page-wrapper">
         <header class="header">
-             <nav class="navbar container">
-                <div class="logo">
+            <div class="navbar container">
+                <div class="left-section">
                     <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                    <form id="search-form" class="search-bar">
+                        <input type="text" id="search-input" placeholder="Buscar">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
                 </div>
                 <div class="menu">
-                    <a href="index.html">Início</a>
-                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="noticias.html">Notícias</a>
+                    <a href="eventos.html">Eventos</a>
+                    <a href="projetos.html">Projetos</a>
+                    <div class="dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span>
+                            <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content"></div>
+                    </div>
                 </div>
-            </nav>
+            </div>
         </header>
 
         <main class="main-content">
             <div class="page-header">
                 <h1 class="page-title">Minhas Publicações</h1>
             </div>
-
             <div class="container">
                 <div id="publicacoes-grid">
                     <p class="status-message">Carregando suas publicações...</p>
@@ -94,39 +119,147 @@
 
         <footer class="footer">
             <div class="container">
-                <p>© 2025 UNEB em Foco</p>
+                <div>© 2025 UNEB em Foco</div>
+                <div class="menu">
+                    <div>Twitter</div>
+                    <div>LinkedIn</div>
+                    <div>Email</div>
+                    <div>Instagram</div>
+                </div>
             </div>
         </footer>
     </div>
 
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label>
+                <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const gridContainer = document.getElementById('publicacoes-grid');
-    const paginationContainer = document.getElementById('pagination-container');
     const apiUrlBase = 'http://127.0.0.1:8000';
     const token = localStorage.getItem('accessToken');
 
+    // --- Seletores de Elementos do DOM ---
+    const userProfileToggle = document.getElementById('user-profile-toggle');
+    const userNameSpan = userProfileToggle.querySelector('.user-name');
+    const userDropdownContent = document.getElementById('user-dropdown-content');
+    const loginModal = document.getElementById('loginModal');
+    const closeButton = loginModal.querySelector('.close-button');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('login-error');
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const gridContainer = document.getElementById('publicacoes-grid');
+    const paginationContainer = document.getElementById('pagination-container');
+
+    // =================================================================
+    // LÓGICA DO HEADER, LOGIN E UI (GENÉRICA)
+    // =================================================================
+    userProfileToggle.addEventListener('click', () => { if (!token) { loginModal.style.display = 'block'; } });
+    const closeModal = () => { loginModal.style.display = 'none'; loginError.style.display = 'none'; loginForm.reset(); };
+    closeButton.addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => { if (event.target == loginModal) closeModal(); });
+    
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        loginError.style.display = 'none';
+        const formData = new URLSearchParams({ username: event.target.username.value, password: event.target.password.value });
+        try {
+            const loginResponse = await fetch(`${apiUrlBase}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData,
+            });
+            if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+            const tokenData = await loginResponse.json();
+            localStorage.setItem('accessToken', tokenData.access_token);
+            const userResponse = await fetch(`${apiUrlBase}/auth/me`, { headers: { 'Authorization': `Bearer ${tokenData.access_token}` } });
+            if (!userResponse.ok) throw new Error('Não foi possível buscar dados do usuário.');
+            const meData = await userResponse.json();
+            localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+            localStorage.setItem('userRole', meData.role);
+            alert('Login realizado com sucesso!');
+            window.location.reload();
+        } catch (error) {
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        }
+    });
+
+    function atualizarUIComLogin() {
+        const userDataString = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
+
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            userNameSpan.textContent = user.nome.split(' ')[0];
+            let dropdownHtml = (userRole === 'administrador')
+                ? `<a href="cadastrar_professor.html">Cadastrar Professor</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="#" id="logoutBtn">Sair</a>`
+                : `<a href="meus_projetos.html">Meus Projetos</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="minhas_publicacoes.html">Minhas Publicações</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="configuracoes.html">Configurações</a><a href="#" id="logoutBtn">Sair</a>`;
+            userDropdownContent.innerHTML = dropdownHtml;
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                alert('Você saiu da sua conta.');
+                window.location.href = 'index.html';
+            });
+            // Marca o link "Minhas Publicações" como ativo
+            const menuLinks = document.querySelectorAll('.dropdown-content a');
+            menuLinks.forEach(link => {
+                if (link.href.includes('minhas_publicacoes.html')) {
+                    link.style.fontWeight = 'bold';
+                    link.style.color = '#2980b9';
+                }
+            });
+        } else {
+            userNameSpan.textContent = 'Login';
+            userDropdownContent.innerHTML = '';
+        }
+    }
+
+    // =================================================================
+    // LÓGICA DA PÁGINA (BUSCA, CARDS E PAGINAÇÃO)
+    // =================================================================
+    
+    // Lógica da Barra de Pesquisa
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const searchTerm = searchInput.value.trim();
+        carregarMinhasPublicacoes(1, searchTerm);
+    });
+
+    // Validação de Acesso
     if (!token) {
-        gridContainer.innerHTML = '<p class="status-message">Você precisa estar logado para ver suas publicações. <a href="index.html">Voltar para o início</a></p>';
+        gridContainer.innerHTML = '<p class="status-message">Você precisa estar logado para ver suas publicações. <a href="index.html">Voltar</a></p>';
+        document.querySelector('.page-header').style.display = 'none';
         return;
     }
 
     let currentPage = 1;
     const itemsPerPage = 9;
 
+    // --- Funções de Renderização ---
     function formatarData(dataIso) {
         if (!dataIso) return "Data não informada";
-        const data = new Date(dataIso);
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        return data.toLocaleDateString('pt-BR', options);
+        return new Date(dataIso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
     function criarCard(publicacao) {
         const card = document.createElement('div');
         card.className = 'publication-card';
-
         card.innerHTML = `
-            <a href="detalhes.html?id=${publicacao.id}" style="text-decoration: none; color: inherit;">
+            <a href="detalhes.html?id=${publicacao.id}">
                 <img src="${publicacao.path_imagem || '../static/images/image-placeholder.png'}" alt="Imagem de ${publicacao.titulo}">
             </a>
             <div class="card-content">
@@ -141,107 +274,83 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
     
-    // Adicionando os event listeners após a criação dos cards
     function adicionarEventListeners() {
         document.querySelectorAll('.btn-edit').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const id = e.target.dataset.id;
-                window.location.href = `editar_publicacao.html?id=${id}`;
-            });
+            button.addEventListener('click', (e) => window.location.href = `editar_publicacao.html?id=${e.target.dataset.id}`);
         });
-
         document.querySelectorAll('.btn-delete').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
-                if (!confirm('Tem certeza que deseja excluir esta publicação? Esta ação não pode ser desfeita.')) {
-                    return;
-                }
-
+                if (!confirm('Tem certeza que deseja excluir esta publicação?')) return;
                 try {
                     const response = await fetch(`${apiUrlBase}/postagens/deletar/${id}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.detail || 'Falha ao excluir a publicação.');
-                    }
-                    
+                    if (!response.ok) throw new Error((await response.json()).detail);
                     alert('Publicação excluída com sucesso!');
                     carregarMinhasPublicacoes(currentPage);
-
                 } catch (error) {
-                    console.error("Erro ao excluir:", error);
-                    alert(error.message);
+                    alert(`Erro ao excluir: ${error.message}`);
                 }
             });
         });
     }
 
-    function renderizarPaginacao(totalItems, currentPage) {
+    function renderizarPaginacao(totalItems, currentPage, searchTerm = '') {
         paginationContainer.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (totalPages <= 1) return;
 
-        const prevButton = document.createElement('button');
-        prevButton.innerHTML = `&larr;`;
-        prevButton.disabled = currentPage === 1;
-        prevButton.addEventListener('click', () => carregarMinhasPublicacoes(currentPage - 1));
-        paginationContainer.appendChild(prevButton);
-
+        const createButton = (text, page, isDisabled = false, isActive = false) => {
+            const button = document.createElement('button');
+            button.innerHTML = text;
+            button.disabled = isDisabled;
+            if (isActive) button.classList.add('active');
+            button.addEventListener('click', () => carregarMinhasPublicacoes(page, searchTerm));
+            return button;
+        };
+        paginationContainer.appendChild(createButton('&larr;', currentPage - 1, currentPage === 1));
         for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            if (i === currentPage) pageButton.classList.add('active');
-            pageButton.addEventListener('click', () => carregarMinhasPublicacoes(i));
-            paginationContainer.appendChild(pageButton);
+            paginationContainer.appendChild(createButton(i, i, false, i === currentPage));
         }
-        
-        const nextButton = document.createElement('button');
-        nextButton.innerHTML = `&rarr;`;
-        nextButton.disabled = currentPage === totalPages;
-        nextButton.addEventListener('click', () => carregarMinhasPublicacoes(currentPage + 1));
-        paginationContainer.appendChild(nextButton);
+        paginationContainer.appendChild(createButton('&rarr;', currentPage + 1, currentPage === totalPages));
     }
 
-    async function carregarMinhasPublicacoes(page = 1) {
+    async function carregarMinhasPublicacoes(page = 1, searchTerm = '') {
         currentPage = page;
         const skip = (page - 1) * itemsPerPage;
-        const apiUrl = `${apiUrlBase}/postagens/me?skip=${skip}&limit=${itemsPerPage}`;
-
+        let apiUrl = `${apiUrlBase}/postagens/me?skip=${skip}&limit=${itemsPerPage}`;
+        if (searchTerm) {
+            apiUrl += `&search_query=${encodeURIComponent(searchTerm)}`;
+        }
         gridContainer.innerHTML = '<p class="status-message">Carregando...</p>';
+        searchInput.value = searchTerm;
 
         try {
-            const response = await fetch(apiUrl, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Falha ao buscar suas publicações.');
-            }
-            
+            const response = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error((await response.json()).detail);
             const data = await response.json();
             
             gridContainer.innerHTML = '';
+            // A resposta da API para publicações está em 'data.publicacoes'
             if (data.publicacoes.length === 0) {
-                gridContainer.innerHTML = '<p class="status-message">Você ainda não criou nenhuma publicação.</p>';
+                gridContainer.innerHTML = searchTerm
+                    ? `<p class="status-message">Nenhuma publicação sua foi encontrada para o termo "${searchTerm}".</p>`
+                    : '<p class="status-message">Você ainda não criou nenhuma publicação.</p>';
             } else {
-                data.publicacoes.forEach(pub => {
-                    gridContainer.appendChild(criarCard(pub));
-                });
-                adicionarEventListeners(); // Adiciona os listeners depois que os botões existem no DOM
+                data.publicacoes.forEach(pub => gridContainer.appendChild(criarCard(pub)));
+                adicionarEventListeners();
             }
-            
-            renderizarPaginacao(data.total, currentPage);
-
+            renderizarPaginacao(data.total, currentPage, searchTerm);
         } catch (error) {
-            console.error(error);
-            gridContainer.innerHTML = `<p class="status-message">${error.message}</p>`;
+            gridContainer.innerHTML = `<p class="status-message">Erro: ${error.message}</p>`;
         }
     }
 
-    carregarMinhasPublicacoes(1);
+    // --- CHAMADAS INICIAIS ---
+    atualizarUIComLogin();
+    carregarMinhasPublicacoes(1, '');
 });
 </script>
 </body>
