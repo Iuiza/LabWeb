@@ -4,24 +4,50 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Cadastrar Professor - UNEB em Foco</title>
     <style>
-        /* CSS Reset e Estilos Gerais (Reutilizados) */
-        body, h1, h2, h3, p, div, button, a, form, label, input { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        a { text-decoration: none; color: inherit; }
-        body { background-color: #f8f9fa; color: #343a40; }
+        /* --- CSS Reset e Estilos Globais --- */
+        a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
         .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex-grow: 1; padding: 40px 0; }
         .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+        
+        /* --- Header, Navbar e Barra de Pesquisa --- */
+        .header { background-color: #ffffff; padding: 15px 0; border-bottom: 1px solid #eee; }
         .navbar { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .navbar .logo img { height: 45px; }
-        .navbar .menu { display: flex; gap: 30px; align-items: center; }
-        .navbar .menu a { font-weight: 500; color: #333; }
-        .footer { background-color: #fff; border-top: 1px solid #e7e7e7; padding: 40px 0; text-align: center; margin-top: 60px;}
+        .navbar .left-section { display: flex; align-items: center; gap: 20px; }
+        .navbar .logo img { height: 50px; }
+        .search-bar { position: relative; display: flex; align-items: center; border: 1px solid #ddd; border-radius: 25px; padding: 8px 15px; background-color: #f9f9f9; width: 300px; transition: all 0.3s ease; }
+        .search-bar:focus-within { border-color: #2980b9; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15); }
+        .search-bar input { flex-grow: 1; font-size: 0.95rem; background: none; outline: none; }
+        .search-bar button { cursor: pointer; font-size: 1.1rem; transition: color 0.2s ease; }
+        .search-bar button:hover { color: #2980b9; }
+        .menu { display: flex; gap: 25px; align-items: center; }
+        .menu a { font-weight: 500; transition: color 0.3s ease; }
+        .menu a:hover, .menu a.active { color: #2980b9; }
 
-        /* Estilos do Formulário */
+        /* --- Dropdown do Usuário --- */
+        .dropdown { position: relative; }
+        .dropdown .user-profile-toggle { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; transition: color 0.3s ease; }
+        .dropdown .user-profile-toggle:hover { color: #2980b9; }
+        .user-name { font-size: 1rem; }
+        .dropdown .person { height: 24px; width: auto; }
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 4px; top: calc(100% + 10px); }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { padding: 12px 16px; display: block; white-space: nowrap; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+        /* --- Modal de Login --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 10px; width: 80%; max-width: 400px; position: relative; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+        
+        /* --- Estilos do Formulário --- */
         .form-container { background-color: #fff; padding: 30px 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .form-container h1 { font-size: 2.5rem; font-weight: 700; color: #101828; margin-bottom: 30px; text-align: center; }
         .form-group { margin-bottom: 20px; }
@@ -33,61 +59,159 @@
         .status-message { text-align: center; margin-top: 20px; padding: 12px; border-radius: 6px; display: none; }
         .status-message.success { background-color: #d1e7dd; color: #0f5132; }
         .status-message.error { background-color: #f8d7da; color: #842029; }
+        
+        /* --- Footer --- */
+        .footer { background-color: #ffffff; border-top: 1px solid #e7e7e7; padding: 20px 0; text-align: center; margin-top: 60px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; }
+        .footer .menu { display: flex; gap: 20px; }
+        .footer .menu div { font-weight: 400; color: #555; }
     </style>
 </head>
 <body>
     <div class="page-wrapper">
         <header class="header">
-             <nav class="navbar container">
-                <div class="logo"><a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="UNEB" /></a></div>
-                <div class="menu"><a href="index.html">Início</a></div>
-            </nav>
+            <div class="navbar container">
+                <div class="left-section">
+                    <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                    <form id="search-form" class="search-bar">
+                        <input type="text" id="search-input" placeholder="Buscar">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+                <div class="menu">
+                    <a href="noticias.html">Notícias</a>
+                    <a href="eventos.html">Eventos</a>
+                    <a href="projetos.html">Projetos</a>
+                    <div class="dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span>
+                            <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <main class="main-content">
             <div id="page-container" class="container">
-                <div class="form-container">
-                    <h1>Cadastrar Novo Professor</h1>
-                    <form id="create-professor-form">
-                        <div class="form-group">
-                            <label for="nome">Nome Completo</label>
-                            <input type="text" id="nome" name="nome" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Institucional</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="cpf">CPF (apenas números)</label>
-                            <input type="text" id="cpf" name="cpf" required minlength="11" maxlength="11" pattern="\d{11}">
-                        </div>
-                        <div class="form-group">
-                            <label for="senha">Senha Provisória</label>
-                            <input type="password" id="senha" name="senha" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirmar_senha">Confirmar Senha Provisória</label>
-                            <input type="password" id="confirmar_senha" required>
-                        </div>
-                        <button type="submit" class="submit-button">Cadastrar Professor</button>
-                    </form>
-                    <div id="status-message" class="status-message"></div>
                 </div>
-            </div>
         </main>
         
-        <footer class="footer"><div class="container"><p>© 2025 UNEB em Foco</p></div></footer>
+        <footer class="footer">
+            <div class="container">
+                <div>© 2025 UNEB em Foco</div>
+                <div class="menu">
+                    <div>Twitter</div>
+                    <div>LinkedIn</div>
+                    <div>Email</div>
+                    <div>Instagram</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label>
+                <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
     </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('create-professor-form');
-    const statusMessage = document.getElementById('status-message');
-    const pageContainer = document.getElementById('page-container');
-
     const apiUrlBase = 'http://127.0.0.1:8000';
     const token = localStorage.getItem('accessToken');
     const userRole = localStorage.getItem('userRole');
+    const pageContainer = document.getElementById('page-container');
+
+    // =================================================================
+    // INÍCIO: LÓGICA DO HEADER, LOGIN E PESQUISA
+    // =================================================================
+    const userProfileToggle = document.getElementById('user-profile-toggle');
+    const userNameSpan = userProfileToggle.querySelector('.user-name');
+    const userDropdownContent = document.getElementById('user-dropdown-content');
+    const loginModal = document.getElementById('loginModal');
+    const closeButton = loginModal.querySelector('.close-button');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('login-error');
+    const searchForm = document.getElementById('search-form');
+
+    userProfileToggle.addEventListener('click', () => { if (!token) { loginModal.style.display = 'block'; } });
+    const closeModal = () => { loginModal.style.display = 'none'; loginError.style.display = 'none'; loginForm.reset(); };
+    closeButton.addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => { if (event.target == loginModal) closeModal(); });
+
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new URLSearchParams({ username: event.target.username.value, password: event.target.password.value });
+        try {
+            const loginResponse = await fetch(`${apiUrlBase}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData });
+            if (!loginResponse.ok) throw new Error('Credenciais inválidas.');
+            const tokenData = await loginResponse.json();
+            localStorage.setItem('accessToken', tokenData.access_token);
+            const userResponse = await fetch(`${apiUrlBase}/auth/me`, { headers: { 'Authorization': `Bearer ${tokenData.access_token}` } });
+            if (!userResponse.ok) throw new Error('Falha ao buscar dados do usuário.');
+            const meData = await userResponse.json();
+            localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+            localStorage.setItem('userRole', meData.role);
+            window.location.reload();
+        } catch (error) {
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        }
+    });
+
+    function atualizarUIComLogin() {
+        const userDataString = localStorage.getItem('currentUser');
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            userNameSpan.textContent = user.nome.split(' ')[0];
+            let dropdownHtml = (userRole === 'administrador')
+                ? `<a href="cadastrar_professor.html">Cadastrar Professor</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="#" id="logoutBtn">Sair</a>`
+                : `<a href="meus_projetos.html">Meus Projetos</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="minhas_publicacoes.html">Minhas Publicações</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="configuracoes.html">Configurações</a><a href="#" id="logoutBtn">Sair</a>`;
+            userDropdownContent.innerHTML = dropdownHtml;
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+            const menuLinks = document.querySelectorAll('.dropdown-content a');
+            menuLinks.forEach(link => {
+                if (link.href.includes('cadastrar_professor.html')) {
+                    link.style.fontWeight = 'bold';
+                    link.style.color = '#2980b9';
+                }
+            });
+        } else {
+            userNameSpan.textContent = 'Login';
+            userDropdownContent.innerHTML = '';
+        }
+    }
+
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const searchTerm = document.getElementById('search-input').value.trim();
+        if (searchTerm) {
+            window.location.href = `projetos.html?search_query=${encodeURIComponent(searchTerm)}`;
+        }
+    });
+    // =================================================================
+    // FIM: LÓGICA DO HEADER
+    // =================================================================
+    
+
+    // =================================================================
+    // INÍCIO: LÓGICA DA PÁGINA "CADASTRAR PROFESSOR" (ORIGINAL)
+    // =================================================================
 
     // 1. Guarda de Rota: Verifica se o usuário é um administrador logado
     function verificarAcessoAdmin() {
@@ -97,62 +221,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h1>Acesso Negado</h1>
                     <p style="text-align: center;">Apenas administradores podem acessar esta página.</p>
                     <p style="text-align: center; margin-top: 20px;"><a href="index.html" style="color: #0056b3;">Voltar para a página inicial</a></p>
-                </div>
-            `;
+                </div>`;
             return false;
         }
+        // Se o acesso for permitido, injeta o formulário na página
+        pageContainer.innerHTML = `
+            <div class="form-container">
+                <h1>Cadastrar Novo Professor</h1>
+                <form id="create-professor-form">
+                    <div class="form-group"><label for="nome">Nome Completo</label><input type="text" id="nome" name="nome" required></div>
+                    <div class="form-group"><label for="email">Email Institucional</label><input type="email" id="email" name="email" required></div>
+                    <div class="form-group"><label for="cpf">CPF (apenas números)</label><input type="text" id="cpf" name="cpf" required minlength="11" maxlength="11" pattern="\\d{11}"></div>
+                    <div class="form-group"><label for="senha">Senha Provisória</label><input type="password" id="senha" name="senha" required></div>
+                    <div class="form-group"><label for="confirmar_senha">Confirmar Senha Provisória</label><input type="password" id="confirmar_senha" required></div>
+                    <button type="submit" class="submit-button">Cadastrar Professor</button>
+                </form>
+                <div id="status-message" class="status-message"></div>
+            </div>`;
         return true;
     }
 
-    // 2. Lida com a submissão do formulário
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        statusMessage.style.display = 'none';
+    // Função para configurar o formulário DEPOIS que ele é adicionado ao DOM
+    function configurarFormulario() {
+        const form = document.getElementById('create-professor-form');
+        if (!form) return; // Se o formulário não existir (acesso negado), não faz nada
 
-        const nome = document.getElementById('nome').value;
-        const email = document.getElementById('email').value;
-        const cpf = document.getElementById('cpf').value;
-        const senha = document.getElementById('senha').value;
-        const confirmarSenha = document.getElementById('confirmar_senha').value;
+        const statusMessage = document.getElementById('status-message');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            statusMessage.style.display = 'none';
 
-        // Validação no front-end
-        if (senha !== confirmarSenha) {
-            statusMessage.textContent = 'As senhas não correspondem.';
-            statusMessage.className = 'status-message error';
-            statusMessage.style.display = 'block';
-            return;
-        }
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const cpf = document.getElementById('cpf').value;
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmar_senha').value;
 
-        try {
-            const response = await fetch(`${apiUrlBase}/professores/`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ nome, email, cpf, senha })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Ocorreu um erro ao cadastrar o professor.');
+            if (senha !== confirmarSenha) {
+                statusMessage.textContent = 'As senhas não correspondem.';
+                statusMessage.className = 'status-message error';
+                statusMessage.style.display = 'block';
+                return;
             }
 
-            const novoProfessor = await response.json();
-            statusMessage.textContent = `Professor "${novoProfessor.nome}" cadastrado com sucesso! Um e-mail com as credenciais foi enviado.`;
-            statusMessage.className = 'status-message success';
-            statusMessage.style.display = 'block';
-            form.reset(); // Limpa o formulário
+            try {
+                const response = await fetch(`${apiUrlBase}/professores/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, cpf, senha })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Ocorreu um erro ao cadastrar o professor.');
+                }
+                const novoProfessor = await response.json();
+                statusMessage.textContent = `Professor "${novoProfessor.nome}" cadastrado com sucesso!`;
+                statusMessage.className = 'status-message success';
+                statusMessage.style.display = 'block';
+                form.reset();
+            } catch (error) {
+                statusMessage.textContent = error.message;
+                statusMessage.className = 'status-message error';
+                statusMessage.style.display = 'block';
+            }
+        });
+    }
 
-        } catch (error) {
-            statusMessage.textContent = error.message;
-            statusMessage.className = 'status-message error';
-            statusMessage.style.display = 'block';
-        }
-    });
-    
-    // Executa a verificação de acesso ao carregar a página
-    verificarAcessoAdmin();
+    // --- CHAMADAS INICIAIS ---
+    atualizarUIComLogin();
+    if (verificarAcessoAdmin()) {
+        configurarFormulario();
+    }
 });
 </script>
 </body>

@@ -4,76 +4,106 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/styles/vars.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Carregando Projeto...</title>
     <style>
-        /* CSS Reset */
+        /* --- CSS Reset e Estilos Globais --- */
         a,button,input,select,h1,h2,h3,h4,h5,*{box-sizing:border-box;margin:0;padding:0;border:none;text-decoration:none;background:none;-webkit-font-smoothing:antialiased}menu,ol,ul{list-style-type:none;margin:0;padding:0}
-
-        /* Estilos Gerais */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; color: #343a40; }
         .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex-grow: 1; }
         .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
 
-        /* Estilos do Header (consistente com outras páginas) */
-        .header { background-color: #fff; border-bottom: 1px solid #e7e7e7; padding: 15px 0; }
+        /* --- Header, Navbar e Barra de Pesquisa --- */
+        .header { background-color: #ffffff; padding: 15px 0; border-bottom: 1px solid #eee; }
         .navbar { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .navbar .logo img { height: 45px; }
-        .navbar .menu { display: flex; gap: 30px; align-items: center; }
-        .navbar .menu a { font-weight: 500; color: #333; transition: color 0.2s; }
-        .navbar .menu a:hover, .navbar .menu a.active { color: #0056b3; }
+        .navbar .left-section { display: flex; align-items: center; gap: 20px; }
+        .navbar .logo img { height: 50px; }
 
-        /* Conteúdo do Detalhe do Projeto */
+        .search-bar { position: relative; display: flex; align-items: center; border: 1px solid #ddd; border-radius: 25px; padding: 8px 15px; background-color: #f9f9f9; width: 300px; transition: all 0.3s ease; }
+        .search-bar:focus-within { border-color: #2980b9; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15); }
+        .search-bar input { flex-grow: 1; font-size: 0.95rem; background: none; outline: none; }
+        .search-bar button { cursor: pointer; font-size: 1.1rem; transition: color 0.2s ease; }
+        .search-bar button:hover { color: #2980b9; }
+
+        .menu { display: flex; gap: 25px; align-items: center; }
+        .menu a { font-weight: 500; transition: color 0.3s ease; }
+        .menu a:hover { color: #2980b9; }
+        .menu a.active { color: #2980b9; font-weight: 600; }
+
+        /* --- Dropdown do Usuário --- */
+        .dropdown { position: relative; }
+        .dropdown .user-profile-toggle { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; transition: color 0.3s ease; }
+        .dropdown .user-profile-toggle:hover { color: #2980b9; }
+        .user-name { font-size: 1rem; }
+        .dropdown .person { height: 24px; width: auto; }
+        .dropdown .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 4px; top: calc(100% + 10px); }
+        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a { padding: 12px 16px; display: block; white-space: nowrap; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+
+        /* --- Modal de Login --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 10px; width: 80%; max-width: 400px; position: relative; }
+        .close-button { position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        #loginForm input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        #loginForm button { background-color: #0056b3; color: white; padding: 14px 20px; margin: 8px 0; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        #login-error { color: red; text-align: center; margin-top: 10px; display: none; }
+        
+        /* --- Conteúdo do Detalhe do Projeto (Estilos Originais Mantidos) --- */
         .detalhe-container { padding: 40px 0; }
         .detalhe-header { text-align: center; margin-bottom: 40px; }
         .detalhe-titulo { font-size: 3rem; font-weight: 700; color: #101828; margin-bottom: 16px; line-height: 1.2; }
         .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 500; text-transform: capitalize; }
         .status-badge.ativo { background-color: #d1e7dd; color: #0f5132; }
         .status-badge.inativo { background-color: #e2e3e5; color: #41464b; }
-
         .detalhe-imagem-principal { width: 100%; height: auto; max-height: 450px; object-fit: cover; border-radius: 12px; margin-bottom: 40px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        
-        .detalhe-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr; /* 2/3 para conteúdo, 1/3 para info */
-            gap: 40px;
-        }
-
+        .detalhe-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; }
         .conteudo-principal .section-title { font-size: 1.5rem; color: #101828; border-bottom: 2px solid #0056b3; padding-bottom: 8px; margin-bottom: 16px; }
         .conteudo-principal .detalhe-descricao { font-size: 1.1rem; line-height: 1.8; white-space: pre-wrap; }
-
         .info-sidebar .info-box { background: #fff; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; }
         .info-sidebar .info-box h3 { font-size: 1.2rem; margin-bottom: 15px; color: #101828; }
         .info-sidebar .info-box p { margin-bottom: 10px; color: #495057; }
         .info-sidebar .info-box strong { color: #212529; }
-
         .publicacoes-relacionadas { margin-top: 40px; }
-        .publicacoes-relacionadas ul { list-style-type: none; padding-left: 0; }
+        .publicacoes-relacionadas ul { list-style-type: none; }
         .publicacoes-relacionadas li { background-color: #fff; border: 1px solid #e9ecef; border-radius: 5px; margin-bottom: 10px; transition: background-color 0.2s; }
-        .publicacoes-relacionadas li a { display: block; padding: 15px; text-decoration: none; color: #0056b3; font-weight: 500; }
+        .publicacoes-relacionadas li a { display: block; padding: 15px; color: #0056b3; font-weight: 500; }
         .publicacoes-relacionadas li a:hover { background-color: #f8f9fa; }
-        
         .status-message { text-align: center; padding: 50px; font-size: 1.2rem; color: #6c757d; }
         .status-message.error { color: #dc3545; }
 
-        /* Footer */
-        .footer { background-color: #f9fafb; border-top: 1px solid #e7e7e7; padding: 40px 0; margin-top: 60px; }
+        /* --- Footer --- */
+        .footer { background-color: #ffffff; border-top: 1px solid #e7e7e7; padding: 20px 0; text-align: center; margin-top: 60px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; }
+        .footer .menu { display: flex; gap: 20px; }
+        .footer .menu div { font-weight: 400; color: #555; }
     </style>
 </head>
 <body>
     <div class="page-wrapper">
         <header class="header">
-             <nav class="navbar container">
-                <div class="logo">
+             <div class="navbar container">
+                <div class="left-section">
                     <a href="index.html"><img src="../static/images/bras-o-da-uneb-10.png" alt="Brasão da UNEB" /></a>
+                    <form id="search-form" class="search-bar">
+                        <input type="text" id="search-input" placeholder="Buscar">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
                 </div>
                 <div class="menu">
                     <a href="noticias.html">Notícias</a>
                     <a href="eventos.html">Eventos</a>
                     <a href="projetos.html" class="active">Projetos</a>
+                    <div class="dropdown">
+                        <div class="user-profile-toggle" id="user-profile-toggle">
+                            <span class="user-name">Login</span>
+                            <img class="person" src="../static/images/person0.svg" alt="Ícone de Usuário" />
+                        </div>
+                        <div class="dropdown-content" id="user-dropdown-content"></div>
+                    </div>
                 </div>
-            </nav>
+            </div>
         </header>
 
         <main id="main-content" class="main-content">
@@ -83,15 +113,132 @@
         </main>
         
         <footer class="footer">
-            <div class="container">
+             <div class="container">
+                <div>© 2025 UNEB em Foco</div>
+                <div class="menu">
+                    <div>Twitter</div>
+                    <div>LinkedIn</div>
+                    <div>Email</div>
+                    <div>Instagram</div>
                 </div>
+            </div>
         </footer>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="username">Email:</label>
+                <input type="email" id="username" name="username" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error">Credenciais inválidas.</p>
+            </form>
+        </div>
     </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const mainContent = document.getElementById('main-content');
         const apiUrlBase = 'http://127.0.0.1:8000';
+
+        // =================================================================
+        // INÍCIO: LÓGICA DO HEADER, LOGIN E PESQUISA (CÓDIGO ADICIONADO)
+        // =================================================================
+        const userProfileToggle = document.getElementById('user-profile-toggle');
+        const userNameSpan = userProfileToggle.querySelector('.user-name');
+        const userDropdownContent = document.getElementById('user-dropdown-content');
+        const loginModal = document.getElementById('loginModal');
+        const closeButton = loginModal.querySelector('.close-button');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('login-error');
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+
+        userProfileToggle.addEventListener('click', () => {
+            if (!localStorage.getItem('accessToken')) {
+                loginModal.style.display = 'block';
+            }
+        });
+
+        const closeModal = () => {
+            loginModal.style.display = 'none';
+            loginError.style.display = 'none';
+            loginForm.reset();
+        };
+        closeButton.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => { if (event.target == loginModal) closeModal(); });
+        
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginError.style.display = 'none';
+            const formData = new URLSearchParams({ username: event.target.username.value, password: event.target.password.value });
+            try {
+                const loginResponse = await fetch(`${apiUrlBase}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData,
+                });
+                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+                const tokenData = await loginResponse.json();
+                localStorage.setItem('accessToken', tokenData.access_token);
+                const userResponse = await fetch(`${apiUrlBase}/auth/me`, { headers: { 'Authorization': `Bearer ${tokenData.access_token}` } });
+                if (!userResponse.ok) throw new Error('Não foi possível buscar dados do usuário.');
+                const meData = await userResponse.json();
+                localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+                localStorage.setItem('userRole', meData.role);
+                alert('Login realizado com sucesso!');
+                window.location.reload();
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.style.display = 'block';
+            }
+        });
+            
+        function atualizarUIComLogin() {
+            const token = localStorage.getItem('accessToken');
+            const userDataString = localStorage.getItem('currentUser');
+            const userRole = localStorage.getItem('userRole');
+
+            if (token && userDataString && userRole) {
+                const user = JSON.parse(userDataString);
+                userNameSpan.textContent = user.nome.split(' ')[0];
+                let dropdownHtml = (userRole === 'administrador')
+                    ? `<a href="cadastrar_professor.html">Cadastrar Professor</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="#" id="logoutBtn">Sair</a>`
+                    : `<a href="meus_projetos.html">Meus Projetos</a><a href="cadastrar_projeto.html">Cadastrar Projeto</a><a href="minhas_publicacoes.html">Minhas Publicações</a><a href="cadastrar_publicacao.html">Nova Publicação</a><a href="configuracoes.html">Configurações</a><a href="#" id="logoutBtn">Sair</a>`;
+                userDropdownContent.innerHTML = dropdownHtml;
+
+                document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.clear();
+                    alert('Você saiu da sua conta.');
+                    window.location.href = 'index.html';
+                });
+            } else {
+                userNameSpan.textContent = 'Login';
+                userDropdownContent.innerHTML = '';
+            }
+        }
+
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                window.location.href = `projetos.html?search_query=${encodeURIComponent(searchTerm)}`;
+            }
+        });
+
+        // =================================================================
+        // FIM: LÓGICA DO HEADER
+        // =================================================================
+        
+
+        // =================================================================
+        // INÍCIO: LÓGICA DA PÁGINA DE DETALHES (CÓDIGO ORIGINAL MANTIDO)
+        // =================================================================
+        const mainContent = document.getElementById('main-content');
 
         function getIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
@@ -121,12 +268,9 @@
                 const projeto = await response.json();
                 
                 document.title = `${projeto.titulo} - UNEB em Foco`;
-                mainContent.innerHTML = ''; // Limpa o "Carregando..."
-
-                // Constrói a lista de professores
+                
                 const professoresHtml = projeto.professores.map(p => `<p><strong>Coordenador(a):</strong> ${p.nome}</p>`).join('');
-
-                // Constrói a lista de publicações
+                
                 let publicacoesHtml = '<ul>';
                 if (projeto.publicacoes && projeto.publicacoes.length > 0) {
                     projeto.publicacoes.forEach(pub => {
@@ -143,15 +287,13 @@
                     <div class="detalhe-container container">
                         <div class="detalhe-header">
                             <h1 class="detalhe-titulo">${projeto.titulo}</h1>
-                            <span class="status-badge ${projeto.status}">${projeto.status}</span>
+                            <span class="status-badge ${projeto.status.toLowerCase()}">${projeto.status}</span>
                         </div>
                         <img src="${imagemSrc}" alt="Imagem do projeto" class="detalhe-imagem-principal">
-                        
                         <div class="detalhe-grid">
                             <div class="conteudo-principal">
                                 <h2 class="section-title">Descrição do Projeto</h2>
                                 <div class="detalhe-descricao">${projeto.descricao || 'Este projeto não possui uma descrição detalhada.'}</div>
-                                
                                 <div class="publicacoes-relacionadas">
                                     <h2 class="section-title">Publicações Relacionadas</h2>
                                     ${publicacoesHtml}
@@ -171,16 +313,16 @@
                         </div>
                     </div>
                 `;
-
                 mainContent.innerHTML = projetoHtml;
-
             } catch (error) {
                 console.error("Falha ao carregar detalhes do projeto:", error);
                 mainContent.innerHTML = `<div class="container"><p class="status-message error">Erro: ${error.message}</p></div>`;
             }
         }
-
-        carregarDetalhesProjeto();
+        
+        // --- CHAMADAS INICIAIS ---
+        atualizarUIComLogin();      // Configura o header
+        carregarDetalhesProjeto();  // Carrega o conteúdo principal da página
     });
   </script>
 </body>

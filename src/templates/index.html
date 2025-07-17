@@ -178,7 +178,7 @@
                     
                     <div class="search-and-filter-container">
                         <form id="search-form">
-                            <input type="search" id="search-input" placeholder="Buscar por palavra-chave...">
+                            <input type="search" id="search-input" placeholder="Buscar">
                             <button type="submit">
                                 <img class="icon2" src="../static/images/icon1.svg" />
                             </button>
@@ -354,8 +354,8 @@
             card.className = 'custom-card';
 
             const imagemSrc = publicacao.path_imagem || '../static/images/image-placeholder.png';
-            const conteudoTruncado = publicacao.conteudo.length > (isFeatured ? 200 : 100)
-                ? publicacao.conteudo.substring(0, (isFeatured ? 200 : 100)) + '...' 
+            const conteudoTruncado = publicacao.conteudo.length > (isFeatured ? 2000 : 100)
+                ? publicacao.conteudo.substring(0, (isFeatured ? 2000 : 100)) + '...' 
                 : publicacao.conteudo;
 
             card.innerHTML = `
