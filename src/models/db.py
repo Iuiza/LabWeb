@@ -1,5 +1,6 @@
 import asyncio
 
+from datetime import date
 from typing import Annotated, cast
 from urllib.parse import quote
 from sqlalchemy import (
@@ -31,7 +32,6 @@ from enums.status import ProjetoStatusEnum
 from enums.tipo import PublicacaoTipoEnum
 from models.db_annotations import (
     text,
-    timestamp,
     datetime_default_now,
     longtext,
     big_intpk,
@@ -141,8 +141,8 @@ class Projeto(BaseModel):
     titulo: Mapped[str] = mapped_column(VARCHAR(255))
     descricao: Mapped[text | None]
     path_imagem: Mapped[str] = mapped_column(VARCHAR(255))
-    data_inicio: Mapped[timestamp]
-    data_fim: Mapped[timestamp | None]
+    data_inicio: Mapped[date]
+    data_fim: Mapped[date | None]
     status: Mapped[ProjetoStatusEnum] = mapped_column(default=ProjetoStatusEnum.ATIVO)
     publico: Mapped[str] = mapped_column(VARCHAR(255))
     curso_id: Mapped[int] = mapped_column(ForeignKey("curso.id"))
@@ -152,7 +152,7 @@ class Projeto(BaseModel):
     curso: Mapped["Curso"] = relationship(back_populates="projetos")
 
     @staticmethod
-    async def get_or_create(session: AsyncSession, titulo: str, path_imagem: str, data_inicio: timestamp, status: ProjetoStatusEnum, publico: str, curso_id: int):
+    async def get_or_create(session: AsyncSession, titulo: str, path_imagem: str, data_inicio: date, status: ProjetoStatusEnum, publico: str, curso_id: int):
         just_created = False
 
         projeto = await session.scalar(

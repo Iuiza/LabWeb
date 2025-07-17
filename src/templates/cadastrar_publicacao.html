@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         
         try {
-            const response = await fetch(`${apiUrlBase}/publicacoes/`, {
+            const response = await fetch(`${apiUrlBase}/postagens/criar`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

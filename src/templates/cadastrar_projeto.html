@@ -368,6 +368,42 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
+        /* Adicione este CSS ao final do seu bloco <style> */
+
+        .pills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px; /* Espaço entre os pills e o campo de busca */
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            min-height: 45px; /* Altura mínima para parecer um campo */
+        }
+
+        .professor-pill {
+            display: flex;
+            align-items: center;
+            background-color: #2980b9;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .professor-pill .remove-pill {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .professor-pill .remove-pill:hover {
+            color: #f1c40f; /* Cor de destaque ao passar o mouse */
+        }
+
         /* Responsividade básica */
         @media (max-width: 768px) {
             .form-row {
@@ -460,7 +496,6 @@
                             <select id="status" name="status">
                                 <option value="ATIVO">Ativo</option>
                                 <option value="INATIVO">Inativo</option>
-                                <option value="EM_ANDAMENTO">Em andamento</option>
                             </select>
                         </div>
 
@@ -492,22 +527,14 @@
                             <label for="curso_id">Curso</label>
                             <select id="curso_id" name="curso_id" required>
                                 <option value="">Selecione um curso...</option>
-                                <option value="1">Sistemas de Informação</option>
-                                <option value="2">Administração</option>
-                                <option value="3">Outro...</option>
                             </select>
                         </div>
                         
-                        <div class="form-group autocomplete-wrapper">
-                            <label for="professor_nome">Professor(es)</label>
-                            <input type="text" id="professor_nome" name="professor_nome" placeholder="Digite o nome do professor" />
-                            <span class="clear-icon">&times;</span> <div id="professor-suggestions" class="autocomplete-suggestions">
-                                <div>Caio</div>
-                                <div>San Francisco</div>
-                                <div>New York</div>
-                                <div>Seattle</div>
-                                <div>Los Angeles</div>
-                                <div>Chicago</div>
+                        <div class="form-group full-width"> <label for="professor_nome">Professor(es)</label>
+                            <div id="professores-selecionados-container" class="pills-container"></div>
+                            <div class="autocomplete-wrapper">
+                                <input type="text" id="professor_input" placeholder="Digite para buscar um professor..." />
+                                <div id="professor-suggestions" class="autocomplete-suggestions"></div>
                             </div>
                         </div>
                     </div>
@@ -547,210 +574,356 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- LÓGICA DE LOGIN E UI ---
-        const loginContainer = document.getElementById('login-container');
-        const loginModal = document.getElementById('loginModal');
-        const closeModal = document.getElementById('closeModal');
-        const loginForm = document.getElementById('loginForm');
-        const loginError = document.getElementById('login-error');
-        const dropdownContent = document.getElementById('dropdown-content');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // =========================================================================
+    // SEÇÃO 1: LÓGICA DE LOGIN E INTERFACE DO USUÁRIO
+    // =========================================================================
+    const loginContainer = document.getElementById('login-container');
+    const loginModal = document.getElementById('loginModal');
+    const closeModal = document.getElementById('closeModal');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('login-error');
+    const dropdownContent = document.getElementById('dropdown-content');
 
-        loginContainer.addEventListener('click', (e) => {
-            if (!localStorage.getItem('accessToken')) {
-                loginModal.style.display = 'block';
-            }
+    loginContainer.addEventListener('click', (e) => {
+        if (!localStorage.getItem('accessToken')) {
+            loginModal.style.display = 'block';
+        }
+    });
+
+    closeModal.addEventListener('click', () => {
+        loginModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == loginModal) {
+            loginModal.style.display = 'none';
+        }
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        loginError.style.display = 'none';
+        const email = event.target.email.value;
+        const password = event.target.password.value;
+        const formData = new URLSearchParams({
+            username: email,
+            password: password
         });
 
-        closeModal.addEventListener('click', () => { loginModal.style.display = 'none'; });
-        window.addEventListener('click', (event) => {
-            if (event.target == loginModal) {
-                loginModal.style.display = 'none';
+        try {
+            const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData,
+            });
+            if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
+            const tokenData = await loginResponse.json();
+            localStorage.setItem('accessToken', tokenData.access_token);
+
+            const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${tokenData.access_token}`
+                }
+            });
+            if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
+
+            const meData = await userResponse.json();
+
+            localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
+            localStorage.setItem('userRole', meData.role);
+
+            alert('Login realizado com sucesso!');
+            loginModal.style.display = 'none';
+            atualizarUIComLogin();
+        } catch (error) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userRole');
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        }
+    });
+
+    function atualizarUIComLogin() {
+        const token = localStorage.getItem('accessToken');
+        const userDataString = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
+        const loginDiv = loginContainer.querySelector('.login');
+
+        if (token && userDataString && userRole) {
+            const user = JSON.parse(userDataString);
+            loginDiv.textContent = user.nome;
+
+            let dropdownHtml = '';
+
+            if (userRole === 'administrador') {
+                dropdownHtml = `
+                    <a href="cadastrar_professor.html">Cadastrar Professor</a>
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="#" id="logoutBtn">Sair</a>
+                `;
+            } else {
+                dropdownHtml = `
+                    <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
+                    <a href="meus_projetos.html">Meus Projetos</a>
+                    <a href="cadastrar_publicacao.html">Nova Publicação</a>
+                    <a href="minhas_publicacoes.html">Minhas Publicações</a>
+                    <a href="configuracoes.html">Configurações</a>
+                    <a href="#" id="logoutBtn">Sair</a>
+                `;
             }
-        });
 
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            loginError.style.display = 'none';
-            const email = event.target.email.value;
-            const password = event.target.password.value;
-            const formData = new URLSearchParams({ username: email, password: password });
+            dropdownContent.innerHTML = dropdownHtml;
 
-            try {
-                const loginResponse = await fetch('http://127.0.0.1:8000/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData,
-                });
-                if (!loginResponse.ok) throw new Error('Email ou senha incorretos.');
-                const tokenData = await loginResponse.json();
-                localStorage.setItem('accessToken', tokenData.access_token);
-
-                const userResponse = await fetch('http://127.0.0.1:8000/auth/me', {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                });
-                if (!userResponse.ok) throw new Error('Não foi possível buscar os dados do usuário.');
-
-                const meData = await userResponse.json(); // { "role": "...", "user_data": {...} }
-                
-                localStorage.setItem('currentUser', JSON.stringify(meData.user_data));
-                localStorage.setItem('userRole', meData.role);
-                
-                alert('Login realizado com sucesso!');
-                loginModal.style.display = 'none';
-                atualizarUIComLogin();
-            } catch (error) {
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('userRole');
-                loginError.textContent = error.message;
-                loginError.style.display = 'block';
+                alert('Você saiu da sua conta.');
+                window.location.reload();
+            });
+        } else {
+            loginDiv.textContent = 'Login';
+            dropdownContent.innerHTML = '';
+        }
+    }
+
+    // =========================================================================
+    // SEÇÃO 2: LÓGICA DE PREENCHIMENTO E INTERAÇÃO DO FORMULÁRIO
+    // =========================================================================
+
+    let todosOsProfessores = [];
+    let professoresSelecionados = [];
+
+    const professorInput = document.getElementById('professor_input');
+    const suggestionsContainer = document.getElementById('professor-suggestions');
+    const pillsContainer = document.getElementById('professores-selecionados-container');
+
+    async function carregarCursos() {
+        const cursoSelect = document.getElementById('curso_id');
+        try {
+            const response = await fetch('http://127.0.0.1:8000/cursos/listar');
+            if (!response.ok) {
+                throw new Error('Falha ao buscar os cursos do servidor.');
             }
+            const cursos = await response.json();
+            
+            cursoSelect.innerHTML = '<option value="">Selecione um curso...</option>';
+            
+            cursos.forEach(curso => {
+                const option = document.createElement('option');
+                option.value = curso.id;
+                option.textContent = curso.nome;
+                cursoSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar cursos:", error);
+            cursoSelect.innerHTML = '<option value="">Erro ao carregar cursos</option>';
+        }
+    }
+
+    async function carregarProfessores() {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/professores/listar');
+            if (!response.ok) throw new Error('Falha ao buscar os professores.');
+            todosOsProfessores = await response.json();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function renderizarPills() {
+        pillsContainer.innerHTML = '';
+        professoresSelecionados.forEach(prof => {
+            const pill = document.createElement('div');
+            pill.className = 'professor-pill';
+            pill.textContent = prof.nome;
+            const removeBtn = document.createElement('span');
+            removeBtn.className = 'remove-pill';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.onclick = () => removerProfessor(prof.id);
+            pill.appendChild(removeBtn);
+            pillsContainer.appendChild(pill);
         });
-        
-        function atualizarUIComLogin() {
-            const token = localStorage.getItem('accessToken');
-            const userDataString = localStorage.getItem('currentUser');
-            const userRole = localStorage.getItem('userRole'); // Pega o papel do usuário
-            const loginDiv = loginContainer.querySelector('.login');
+    }
 
-            if (token && userDataString && userRole) {
-                const user = JSON.parse(userDataString);
-                loginDiv.textContent = user.nome; 
+    function adicionarProfessor(prof) {
+        if (!professoresSelecionados.some(p => p.id === prof.id)) {
+            professoresSelecionados.push(prof);
+            renderizarPills();
+        }
+        professorInput.value = '';
+        suggestionsContainer.style.display = 'none';
+        professorInput.focus();
+    }
 
-                let dropdownHtml = '';
+    function removerProfessor(idParaRemover) {
+        professoresSelecionados = professoresSelecionados.filter(p => p.id !== idParaRemover);
+        renderizarPills();
+    }
 
-                if (userRole === 'administrador') {
-                    // Menu do Administrador
-                    dropdownHtml = `
-                        <a href="cadastrar_professor.html">Cadastrar Professor</a>
-                        <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                        <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                        <a href="#" id="logoutBtn">Sair</a>
-                    `;
-                    } else {
-                        // Menu do Professor
-                        dropdownHtml = `
-                            <a href="cadastrar_projeto.html">Cadastrar Projeto</a>
-                            <a href="meus_projetos.html">Meus Projetos</a>
-                            <a href="cadastrar_publicacao.html">Nova Publicação</a>
-                            <a href="minhas_publicacoes.html">Minhas Publicações</a>
-                            <a href="configuracoes.html">Configurações</a>
-                            <a href="#" id="logoutBtn">Sair</a>
-                        `;
-                    }
-
-                dropdownContent.innerHTML = dropdownHtml;
-
-                document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('userRole');
-                    alert('Você saiu da sua conta.');
-                    window.location.reload();
+    professorInput.addEventListener('input', () => {
+        const query = professorInput.value.toLowerCase();
+        suggestionsContainer.innerHTML = '';
+        if (query.length > 0) {
+            const filteredProfessores = todosOsProfessores.filter(prof =>
+                prof.nome.toLowerCase().includes(query)
+            );
+            if (filteredProfessores.length > 0) {
+                suggestionsContainer.style.display = 'block';
+                filteredProfessores.forEach(prof => {
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.textContent = prof.nome;
+                    suggestionDiv.onclick = () => adicionarProfessor(prof);
+                    suggestionsContainer.appendChild(suggestionDiv);
                 });
             } else {
-                loginDiv.textContent = 'Login';
-                dropdownContent.innerHTML = '';
-            }
-        }
-            // --- Lógica de Autocomplete (Mantida do seu código anterior) ---
-            const professorInput = document.getElementById('professor_nome');
-            const suggestionsContainer = document.getElementById('professor-suggestions');
-            const clearIcon = professorInput.nextElementSibling; // O ícone 'x'
-
-            professorInput.addEventListener('input', () => {
-                const query = professorInput.value.toLowerCase();
-                if (query.length > 0) {
-                    suggestionsContainer.style.display = 'block';
-                    clearIcon.style.display = 'block';
-
-                    const items = suggestionsContainer.querySelectorAll('div');
-                    items.forEach(item => {
-                        if (item.textContent.toLowerCase().includes(query)) {
-                            item.style.display = 'block';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                } else {
-                    suggestionsContainer.style.display = 'none';
-                    clearIcon.style.display = 'none';
-                }
-            });
-
-            suggestionsContainer.addEventListener('click', (event) => {
-                if (event.target.tagName === 'DIV') {
-                    professorInput.value = event.target.textContent;
-                    suggestionsContainer.style.display = 'none';
-                    clearIcon.style.display = 'block';
-                }
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!professorInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
-                    suggestionsContainer.style.display = 'none';
-                }
-            });
-
-            clearIcon.addEventListener('click', () => {
-                professorInput.value = '';
                 suggestionsContainer.style.display = 'none';
-                clearIcon.style.display = 'none';
-                professorInput.focus();
-            });
+            }
+        } else {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
 
-            // --- Lógica de Upload de Arquivo (Mantida do seu código anterior) ---
-            const fileUploadArea = document.querySelector('.file-upload-area');
-            const fileInput = document.getElementById('imagem_capa');
+    document.addEventListener('click', (event) => {
+        if (!professorInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
 
-            fileUploadArea.addEventListener('click', () => {
-                fileInput.click();
-            });
+    // --- Lógica de Upload de Arquivo ---
+    const fileUploadArea = document.querySelector('.file-upload-area');
+    const fileInput = document.getElementById('imagem_capa');
 
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    const fileName = fileInput.files[0].name;
-                    const uploadText = fileUploadArea.querySelector('p');
-                    uploadText.innerHTML = `Arquivo selecionado: <strong>${fileName}</strong>`;
-                    fileUploadArea.querySelector('.upload-info').textContent = 'Pronto para enviar.';
-                } else {
-                    const uploadText = fileUploadArea.querySelector('p');
-                    uploadText.innerHTML = `<strong>Clique ou arraste o arquivo aqui para fazer upload</strong>`;
-                    fileUploadArea.querySelector('.upload-info').textContent = 'Suporte para um único ou upload em massa. Tamanho máximo do arquivo 2MB.';
-                }
-            });
+    fileUploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
 
-            fileUploadArea.addEventListener('dragover', (event) => {
-                event.preventDefault();
-                fileUploadArea.style.borderColor = '#2980b9';
-                fileUploadArea.style.backgroundColor = '#e1f0fa';
-            });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            const fileName = fileInput.files[0].name;
+            const uploadText = fileUploadArea.querySelector('p');
+            uploadText.innerHTML = `Arquivo selecionado: <strong>${fileName}</strong>`;
+            fileUploadArea.querySelector('.upload-info').textContent = 'Pronto para enviar.';
+        } else {
+            const uploadText = fileUploadArea.querySelector('p');
+            uploadText.innerHTML = `<strong>Clique ou arraste o arquivo aqui para fazer upload</strong>`;
+            fileUploadArea.querySelector('.upload-info').textContent = 'Suporte para um único ou upload em massa. Tamanho máximo do arquivo 2MB.';
+        }
+    });
 
-            fileUploadArea.addEventListener('dragleave', (event) => {
-                fileUploadArea.style.borderColor = '#aed6f1';
-                fileUploadArea.style.backgroundColor = '#ebf5fb';
-            });
+    fileUploadArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        fileUploadArea.style.borderColor = '#2980b9';
+        fileUploadArea.style.backgroundColor = '#e1f0fa';
+    });
 
-            fileUploadArea.addEventListener('drop', (event) => {
-                event.preventDefault();
-                fileUploadArea.style.borderColor = '#aed6f1';
-                fileUploadArea.style.backgroundColor = '#ebf5fb';
-                
-                const files = event.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    const changeEvent = new Event('change');
-                    fileInput.dispatchEvent(changeEvent);
-                }
-            });
+    fileUploadArea.addEventListener('dragleave', (event) => {
+        fileUploadArea.style.borderColor = '#aed6f1';
+        fileUploadArea.style.backgroundColor = '#ebf5fb';
+    });
+
+    fileUploadArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        fileUploadArea.style.borderColor = '#aed6f1';
+        fileUploadArea.style.backgroundColor = '#ebf5fb';
+
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            const changeEvent = new Event('change');
+            fileInput.dispatchEvent(changeEvent);
+        }
+    });
 
 
-            // --- Chamada inicial para atualizar a UI ao carregar a página ---
-            atualizarUIComLogin();
+    // =========================================================================
+    // SEÇÃO 3: LÓGICA DE SUBMISSÃO DO FORMULÁRIO
+    // =========================================================================
+    const formCadastro = document.querySelector('.form-container form');
+    formCadastro.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        // VALIDAÇÃO NO FRONTEND ANTES DE ENVIAR
+        if (document.getElementById('titulo').value.trim() === '') {
+            alert('Por favor, preencha o título do projeto.');
+            return;
+        }
+        if (!document.getElementById('curso_id').value) {
+            alert('Por favor, selecione um curso.');
+            return;
+        }
+        if (professoresSelecionados.length === 0) {
+            alert('É necessário selecionar pelo menos um professor responsável.');
+            return;
+        }
+
+        const formData = new FormData(formCadastro);
+        
+        const dataFimInput = document.getElementById('data_fim');
+        if (!dataFimInput.value) {
+            formData.delete('data_fim');
+        }
+        
+        professoresSelecionados.forEach(prof => {
+            formData.append('professor_ids_responsaveis', prof.id);
         });
-    </script>
+
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Você precisa estar logado para criar um projeto.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/projetos/criar', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData;
+            }
+
+            const projetoCriado = await response.json();
+            alert(`Projeto "${projetoCriado.titulo}" criado com sucesso!`);
+            window.location.href = 'projetos.html';
+
+        } catch (error) {
+            console.error("Ocorreu uma falha. Inspecionando o objeto de erro abaixo:");
+            console.log(error); 
+
+            let mensagemAmigavel = 'Ocorreu um erro desconhecido.';
+            if (error && error.detail) {
+                mensagemAmigavel = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail);
+            } else if (error && error.message) {
+                mensagemAmigavel = error.message;
+            }
+
+            alert(`Erro ao processar a requisição: ${mensagemAmigavel}`);
+        }
+    });
+
+    // =========================================================================
+    // SEÇÃO 4: INICIALIZAÇÃO DA PÁGINA
+    // =========================================================================
+    async function inicializarPagina() {
+        atualizarUIComLogin();
+        await carregarCursos();
+        await carregarProfessores();
+    }
+    
+    inicializarPagina();
+});
+</script>
 </body>
 </html>

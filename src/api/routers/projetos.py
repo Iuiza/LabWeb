@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import List, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import date
 from sqlalchemy import select, and_, func, delete, or_
 from sqlalchemy.orm import selectinload
 
@@ -27,8 +27,8 @@ async def criar_novo_projeto(
     # Dados do Formulário
     titulo: str = Form(...),
     descricao: Optional[str] = Form(None),
-    data_inicio: datetime = Form(...),
-    data_fim: Optional[datetime] = Form(None),
+    data_inicio: date = Form(...),
+    data_fim: Optional[date] = Form(None),
     status: ProjetoStatusEnum = Form(ProjetoStatusEnum.ATIVO),
     publico: str = Form(...),
     curso_id: int = Form(...),
@@ -118,11 +118,12 @@ async def criar_novo_projeto(
         select(Projeto)
         .where(Projeto.id == novo_projeto.id)
         .options(
-            selectinload(Projeto.curso),
-            # Carrega através da tabela de associação
-            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor)
+            selectinload(Projeto.curso).selectinload(Curso.departamento), 
+            selectinload(Projeto.link_professores).selectinload(ProjetoProfessor.professor),
+            selectinload(Projeto.publicacoes) 
         )
     )
+
     projeto_final = (await session.execute(query_final)).scalar_one()
 
     return projeto_final
@@ -223,8 +224,8 @@ async def editar_projeto(
     # Os dados vêm do formulário de edição, assim como na criação
     titulo: str = Form(...),
     descricao: Optional[str] = Form(None),
-    data_inicio: datetime = Form(...),
-    data_fim: Optional[datetime] = Form(None),
+    data_inicio: date = Form(...),
+    data_fim: Optional[date] = Form(None),
     status: ProjetoStatusEnum = Form(...),
     publico: str = Form(...),
     curso_id: int = Form(...),

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Union
-from datetime import datetime
+from datetime import datetime, date
 from enums.status import ProjetoStatusEnum
 from enums.tipo import PublicacaoTipoEnum
 
@@ -109,8 +109,8 @@ class ProjetoBase(BaseModel):
     titulo: str = Field(..., min_length=3)
     descricao: Optional[str] = None
     path_imagem: Optional[str] = None
-    data_inicio: datetime
-    data_fim: Optional[datetime] = None
+    data_inicio: date
+    data_fim: Optional[date] = None
     status: ProjetoStatusEnum = ProjetoStatusEnum.ATIVO
     publico: str
     curso_id: int
